@@ -21,7 +21,7 @@ content = readPDF(fileName)
 content = content.split("\n")
 index = 1
 
-newWordStructure = {"meaning": "", "wordIndex": 0, "wordUsed": False, "clipsFound": 0, "searched": False}
+newWordStructure = {"meaning": "", "wordIndex": 0, "wordUsed": False, "clipsFound": 0, "clipData": {}, "searched": False}
 greWords = {}
 wordIndex = 1
 currentIndex = 0
@@ -33,7 +33,7 @@ for i in range(len(content)):
         try:greWords[currentWord]["meaning"] = currentMeaning.strip()
         except:pass
         currentWord = content[i][indexLength:].strip()
-        greWords[currentWord] = {"meaning": "", "wordIndex": wordIndex, "wordUsed": False, "clipsFound": 0, "searched": False}
+        greWords[currentWord] = {"meaning": "", "wordIndex": wordIndex, "wordUsed": False, "clipsFound": 0, "clipData": {}, "searched": False}
         wordIndex += 1
         currentMeaning = ""
     else:
