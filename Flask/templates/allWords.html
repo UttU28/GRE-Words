@@ -20,7 +20,9 @@
             <div class="videoContainer boxContainer">
                 <div class="currentVideo"></div>
                 <div class="movieName">movieName</div>
-                <video id="currentVideoLink" class="currentVideoLink" controls controlslist="nofullscreen"></video>
+                <video id="currentVideoLink" class="currentVideoLink" controls autoplay controlslist="nofullscreen"></video>
+                <input type="checkbox" id="muteCheckbox" name="muteCheckbox" value="mute"> Mute
+                <label for="vehicle1">MUTE AUDIO</label>
                 <div class="subtitleData poppingBox">subtitleData</div>
             </div>
             <div class="card boxContainer">
@@ -152,6 +154,15 @@
     function goToYouTube() {
         window.open('https://www.youtube.com/@ThatInsaneGuy', '_blank');
     }
+
+    var muteCheckbox = document.getElementById('muteCheckbox');
+    muteCheckbox.addEventListener('click', function() {
+        if (muteCheckbox.checked) {currentVideoLinkElement.muted = true;
+        } else {currentVideoLinkElement.muted = false;}
+    });
+    autoplayButton.addEventListener('click', function() {
+        videoElement.autoplay = !videoElement.autoplay;
+    });
 
     // document.getElementById('nextButton').addEventListener('click', nextButtonClick);
     // document.getElementById('prevButton').addEventListener('click', prevButtonClick);
