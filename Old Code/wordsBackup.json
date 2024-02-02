@@ -1,19 +1,61 @@
 {
-  "abase": {
+  "brother": {
     "meaning": "Degrade or humble; to lower in rank, status, or esteem",
     "wordIndex": 1,
     "wordUsed": false,
-    "clipsFound": 0,
-    "clipData": {},
-    "searched": false
+    "clipsFound": 4,
+    "clipData": {
+      "1": {
+        "videoURL": "https://www.playphrase.me/video/5b96b007cc77853d88561aa4/628ea5c3b071e7f3ed0c0162.mp4",
+        "subtitle": "You know where the fuck I'm from. This Bompton, brother.",
+        "videoInfo": "Straight Outta Compton (2015) [01:48:35]"
+      },
+      "2": {
+        "videoURL": "https://www.playphrase.me/video/5b96b007cc77853d88561aa4/628ea5c3b071e7f3ed0c00db.mp4",
+        "subtitle": "What that Ruthless like, brother?",
+        "videoInfo": "Straight Outta Compton (2015) [01:38:43]"
+      },
+      "3": {
+        "videoURL": "https://www.playphrase.me/video/5b96b007cc77853d88561aa4/628ea5c2b071e7f3ed0bfcdb.mp4",
+        "subtitle": "Keep talkin' that bullshit on your way out the door, brother.",
+        "videoInfo": "Straight Outta Compton (2015) [00:27:48]"
+      },
+      "4": {
+        "videoURL": "https://www.playphrase.me/video/5b1832a08079eb4cd4a4a413/6276d4772827a11674be8cf4.mp4",
+        "subtitle": "Hit the lights, brother.",
+        "videoInfo": "Boyz n the Hood (1991) [01:38:51]"
+      }
+    },
+    "searched": true
   },
   "abate": {
     "meaning": "Reduce, diminish",
     "wordIndex": 2,
     "wordUsed": false,
-    "clipsFound": 0,
-    "clipData": {},
-    "searched": false
+    "clipsFound": 4,
+    "clipData": {
+      "1": {
+        "videoURL": "https://www.playphrase.me/video/5b1838758079eb4cd4a55413/628408f9c3731da7ee2fdb80.mp4",
+        "subtitle": "There lives within the very flame of love... a kind of wick or snuff that will abate it.",
+        "videoInfo": "Hamlet (1996) [03:00:25]"
+      },
+      "2": {
+        "videoURL": "https://www.playphrase.me/video/5b1839dc8079eb4cd4a57f59/629c44b514bb6d3b4fc38840.mp4",
+        "subtitle": "Consumes it with a burning flame that does not abate.",
+        "videoInfo": "Born of Hope (2009) [00:23:20]"
+      },
+      "3": {
+        "videoURL": "https://www.playphrase.me/video/5b96ab52cc77853d885611ef/628b9403b071e717a65fbf21.mp4",
+        "subtitle": "You basically want to try to either aggravate the demon or abate it.",
+        "videoInfo": "Demon House (2018) [00:20:45]"
+      },
+      "4": {
+        "videoURL": "https://www.playphrase.me/video/5b183b3d8079eb4cd4a5a9b8/627826d4b05db515a22da6b1.mp4",
+        "subtitle": "l have unleashed a raging shit storm of epic proportions on the board of trustees of that pissant school that will not abate until those girls seek enrollment elsewhere.",
+        "videoInfo": "Remember Me (2010) [01:33:10]"
+      }
+    },
+    "searched": true
   },
   "abdicate": {
     "meaning": "Formally give up the throne (or some other power or responsibility)",

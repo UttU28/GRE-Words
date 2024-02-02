@@ -1,5 +1,7 @@
 import fitz
 import json
+import random
+
 
 def readPDF(fileName):
     pdfDocument = fitz.open(fileName)
@@ -42,8 +44,16 @@ for i in range(len(content)):
 print(greWords)
 print(greWords["abase"])
 
+
+# SHUFFELIG THE DATA
+shuffled_words = list(greWords.keys())
+random.shuffle(shuffled_words)
+shuffled_gre_words = {word: greWords[word] for word in shuffled_words}
+
+
 fileName = "greWords.json"
 with open(fileName, "w") as json_file:
-    json.dump(greWords, json_file, indent=2)
+    json.dump(shuffled_gre_words, json_file, indent=2)
+    # json.dump(greWords, json_file, indent=2)
 
 print(f"Dictionary saved as JSON in '{fileName}'.")
