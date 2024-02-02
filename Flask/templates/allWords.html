@@ -8,11 +8,13 @@
     <!-- Assuming you have a valid path to your CSS file -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/cyberPunk.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/allWords.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/allWordsMobile.css') }}">
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 </head>
 <body>
+    <div class="title">GRE Words</div>
     <div class="container">
-        <div class="prevButton" id="prevButton"><</div>
+        <div class="prevButton webButtons" id="prevButton" onclick="prevButtonClick()"><</div>
         <section class="cardContainer shot">
             <div class="videoContainer boxContainer">
                 <div class="currentVideo"></div>
@@ -27,7 +29,12 @@
                 </div>
             </div>
         </section>
-        <div class="nextButton" id="nextButton">></div>
+        <div class="nextButton webButtons" id="nextButton" onclick="nextButtonClick()">></div>
+
+        <div class="mobileButtons">
+            <div class="prevButton" id="prevButton" onclick="prevButtonClick()">PREV</div>
+            <div class="nextButton" id="nextButton" onclick="nextButtonClick()">NEXT</div>
+        </div>
     </div>
 
 <script>
@@ -48,8 +55,6 @@
     var currentData = myData[currentWord];
     var totalClips = 0;
     updateData();
-
-    // Function to update data
     function updateData() {
         currentWordElement.textContent = currentWord;
         currentMeaningElement.textContent = currentData.meaning;
@@ -109,6 +114,7 @@
     }
 
     function nextButtonClick() {
+        console.log("Here")
         if (initialValue < maxValue) {
             initialValue++;
             currentWord = allData[initialValue];
@@ -126,8 +132,8 @@
         }
     }
 
-    document.getElementById('nextButton').addEventListener('click', nextButtonClick);
-    document.getElementById('prevButton').addEventListener('click', prevButtonClick);
+    // document.getElementById('nextButton').addEventListener('click', nextButtonClick);
+    // document.getElementById('prevButton').addEventListener('click', prevButtonClick);
 </script>
 
 </body>

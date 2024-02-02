@@ -30,9 +30,8 @@ def swipe():
     return jsonify({"message": "Swipe data received successfully!"})
 
 
-if __name__ == '__main__':
-    host_name = socket.gethostname()
-    ip_address = socket.gethostbyname(host_name)
-    print(f"Host Name: {host_name}")
-    print(f"Connect on Mobile: http://{ip_address}:5000")
-    app.run(debug=True)
+
+if __name__ == "__main__":
+    # app.run(debug=True)
+    app.run(host="0.0.0.0", port=443)
+    # app.run(host="0.0.0.0", port=8000)

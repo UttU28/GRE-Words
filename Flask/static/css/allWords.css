@@ -2,14 +2,31 @@
 
 body{
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   font-family: "Roboto";
 }
 
+
+.title{
+    padding-top: 5vh;
+    color: #6dff62;
+    font-size: 5vh;
+    font-weight: bold;
+}
+
+.mobileButtons{
+    display: none;
+}
+.prevButton, .nextButton{
+    display: block;
+}
 .cardContainer {
     width: 60%;
 }
+
+
 
 .container {
     margin-top: 5vh;
