@@ -12,6 +12,7 @@
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 </head>
 <body>
+    <img class="logo" src="{{ url_for('static', filename='images/logo.png') }}" alt="" srcset="" onclick="goToYouTube()">
     <div class="title">GRE Words</div>
     <div class="container">
         <div class="prevButton webButtons" id="prevButton" onclick="prevButtonClick()"><</div>
@@ -19,11 +20,14 @@
             <div class="videoContainer boxContainer">
                 <div class="currentVideo"></div>
                 <div class="movieName">movieName</div>
-                <video id="currentVideoLink" class="currentVideoLink" controls autoplay></video>
+                <video id="currentVideoLink" class="currentVideoLink" controls controlslist="nofullscreen"></video>
                 <div class="subtitleData poppingBox">subtitleData</div>
             </div>
             <div class="card boxContainer">
                 <div class="textData">
+                    <div class="currentIndexDiv">
+                        <div class="indexNow"></div> / <div class="indexMax"></div>
+                    </div>
                     <h2 class="currentWord">currentWord</h2>
                     <div class="currentMeaning">currentMeaning</div>
                 </div>
@@ -35,7 +39,11 @@
             <div class="prevButton" id="prevButton" onclick="prevButtonClick()">PREV</div>
             <div class="nextButton" id="nextButton" onclick="nextButtonClick()">NEXT</div>
         </div>
+
     </div>
+    <h1 class="temp">DISCLAIMER!</h1>
+    <h3 class="temp">This is just a test site to show what path I am on, so give me some inputs if you want to on "thatinsaneguy28@gmail.com" or the reddit post.</h3>
+    <h3 class="temp">This is just a test app, I own none of the content. If someone needs the credit then contact through the logo above.</h3>
 
 <script>
     var myData = {{ data | tojson | safe }};
@@ -50,7 +58,10 @@
     var currentMovieNameElement = document.querySelector('.movieName');
     var currentSubtitleDataElement = document.querySelector('.subtitleData');
 
-    var currentIndex = 1;
+    var currentIndexNowElement = document.querySelector('.indexNow');
+    var currentIndexMaxElement = document.querySelector('.indexMax');
+
+    var Div = 1;
     var currentWord = allData[initialValue];
     var currentData = myData[currentWord];
     var totalClips = 0;
@@ -74,24 +85,30 @@
             videoNumberDiv.textContent = `Video ${i}`;
             videoNumberDiv.addEventListener('click', function() {
                 // Get the value of the clicked div and set it as the current index
-                currentIndex = parseInt(this.getAttribute('value'));
-                changeVideoClips(currentIndex);
+                Div = parseInt(this.getAttribute('value'));
+                changeVideoClips(Div);
             });
             currentVideoContainer.appendChild(videoNumberDiv);
         }
+
+        currentIndexNowElement.textContent = initialValue+1;
+        console.log(maxValue, "maxValue");
+        currentIndexMaxElement.textContent = maxValue+1;
+
+
         currentVideoLinkElement.setAttribute("src", videoURL);
-        currentIndex = 1;
+        Div = 1;
         document.getElementsByClassName('currentVideoLink')[0].addEventListener('ended', myHandler, false);
     }
 
-    function changeVideoClips(currentIndex) {
-        currentVideoLinkElement.setAttribute("src", currentData.clipData[currentIndex.toString()].videoURL);
-        currentMovieNameElement.textContent = currentData.clipData[currentIndex.toString()].videoInfo
-        currentSubtitleDataElement.innerHTML = `${currentData.clipData[currentIndex.toString()].subtitle.toUpperCase().replace(new RegExp(currentWord, 'gi'), `<span class="currentText">${currentWord.toUpperCase()}</span>` )}`;
+    function changeVideoClips(Div) {
+        currentVideoLinkElement.setAttribute("src", currentData.clipData[Div.toString()].videoURL);
+        currentMovieNameElement.textContent = currentData.clipData[Div.toString()].videoInfo
+        currentSubtitleDataElement.innerHTML = `${currentData.clipData[Div.toString()].subtitle.toUpperCase().replace(new RegExp(currentWord, 'gi'), `<span class="currentText">${currentWord.toUpperCase()}</span>` )}`;
         var videoNumberDivs = document.querySelectorAll('.videoNumber');
         videoNumberDivs.forEach(function(videoNumberDiv) {
             var divValue = parseInt(videoNumberDiv.getAttribute('value'));
-            if (divValue === currentIndex) {
+            if (divValue === Div) {
                 videoNumberDiv.classList.add('boxContainer');
                 videoNumberDiv.classList.remove('poppingBox');
             } else {
@@ -102,10 +119,10 @@
     }
     
     function myHandler(e) {
-        if (totalClips != currentIndex){
+        if (totalClips != Div){
             console.log("Here");
-            currentIndex += 1;
-            changeVideoClips(currentIndex);
+            Div += 1;
+            changeVideoClips(Div);
 
         } else {
             console.log("Ther");
@@ -130,6 +147,10 @@
             currentData = myData[currentWord];
             updateData();
         }
+    }
+
+    function goToYouTube() {
+        window.open('https://www.youtube.com/@ThatInsaneGuy', '_blank');
     }
 
     // document.getElementById('nextButton').addEventListener('click', nextButtonClick);

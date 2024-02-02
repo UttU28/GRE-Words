@@ -8,11 +8,12 @@ app = Flask(__name__)
 def index():
     with open('greWords.json', 'r') as file:
         data = json.load(file)
-    # data = {key: value for key, value in data.items() if value.get('clipsFound', 0) > 1}
+    data = {key: value for key, value in data.items() if value.get('clipsFound', 0) > 1}
     allData = list(data.keys())
 
     initialValue = 0
     maxValue = len(allData)
+    print(maxValue)
     return render_template('allWords.html', initialValue=initialValue, maxValue=maxValue, data=data, allData=allData)
 
     # for i in range(len(allData)):
@@ -32,6 +33,6 @@ def swipe():
 
 
 if __name__ == "__main__":
-    app.run()
+    # app.run()
     # app.run(host="0.0.0.0", port=443)
-    # app.run(host="0.0.0.0", port=8000)
+    app.run(host="0.0.0.0", port=5000)

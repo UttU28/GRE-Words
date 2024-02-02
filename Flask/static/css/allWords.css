@@ -8,12 +8,25 @@ body{
   font-family: "Roboto";
 }
 
+.logo{
+  width: 5%;
+  position: absolute;
+  left: 5vh;
+  top: 5vh;
+  
+}
 
 .title{
     padding-top: 5vh;
     color: #6dff62;
     font-size: 5vh;
     font-weight: bold;
+}
+
+.currentIndexDiv{
+  display: flex;
+  color: #6dff62;
+  font-size: 1.5vh;
 }
 
 .mobileButtons{
