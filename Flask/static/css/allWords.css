@@ -1,0 +1,139 @@
+@import url('https://fonts.googleapis.com/css?family=Roboto');
+
+body{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Roboto";
+}
+
+.cardContainer {
+    width: 60%;
+}
+
+.container {
+    margin-top: 5vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10vh;
+    width: 100%;
+}
+
+.prevButton, .nextButton{
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background-color: #45a530;
+    font-size: 3vh;
+    /* transform: rotate(90deg); */
+    border-radius: 10px;
+    padding: 5vh;
+}
+
+.currentWord {
+  color: #d0d0d0;
+  font-size: 5vh;
+  text-transform: uppercase;
+}
+
+.currentMeaning {
+  color: #d0d0d0;
+  font-size: 3vh;
+}
+
+.videoContainer{
+  display: flex;
+  flex-direction: column;
+  padding: 1vh;
+  justify-content: center;
+  align-items: center;
+  width: 95%;
+  margin: 2vh;
+  border-radius: 10px;
+  transition: all 0.5s;
+}
+
+.currentVideoLink{
+  width: 95%;
+  padding: 1.5vh;
+  border-radius: 5px;
+}
+
+.movieName{
+  margin-right: 0;
+  margin-left: auto;
+  font-size: 2.2vh;
+  color: #84ff7b;
+  margin-right: 4vh;
+  border-radius: 10px;
+}
+
+.subtitleData{
+  width: 95%;
+  font-size: 3vh;
+  text-align: center;
+  color: #d0d0d0;
+  padding: 1.5vh;
+  margin-bottom: 3vh;
+}
+
+.currentText{
+  color: #6dff62;
+  font-size: 3.3vh;
+  font-weight: bold;
+}
+
+.card{
+    width: 95%;
+    margin: 2vh;
+    border-radius: 5px;
+    transition: all 0.5s;
+    padding: 4vh;
+}
+
+.currentVideo{
+    display: flex;
+    width: 95%;
+    align-items: center;
+    justify-content: space-evenly;
+    border-radius: 10px;
+    padding: 1vh;
+    color: #d0d0d0;
+    font-size: 3vh;
+}
+
+.currentVideo .boxContainer{
+    background-color: #45a530;
+}
+
+.videoNumber{
+    padding: 1.5vh;
+    font-size: 2.5vh;
+    border-radius: 20px;
+    cursor: pointer;
+}
+
+.videoActive{
+    color: #84ff7b;
+    background-color: #4682b4;
+}
+
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 1vh;
+}
+
+::-webkit-scrollbar-track {
+  background-color: #625AEE;
+  -webkit-border-radius: 10px;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  -webkit-border-radius: 10px;
+  border-radius: 10px;
+  background: #aaa5ff; 
+}
