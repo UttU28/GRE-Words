@@ -16,47 +16,58 @@
 <body>
     <img class="logo" src="{{ url_for('static', filename='images/logo.png') }}" alt="" srcset="" onclick="goToYouTube()">
     <div class="title">GRE Words</div>
-    <div class="searchBar">
-        <input type="text" class="searchInput" onkeyup="search()" placeholder="Search for.." autofocus />
-        <ul class="allWords"></ul>
-    </div>
-    <div class="container">
-        <div class="prevButton webButtons" id="prevButton" onclick="prevButtonClick()"><</div>
-        <section class="cardContainer shot">
-            <div class="videoContainer boxContainer">
-                <div class="movieName">movieName</div>
-                <video id="currentVideoLink" class="currentVideoLink" controls autoplay muted controlslist="nofullscreen"></video>
-                <div class="videoControls">
-                <div class="toggleMute" id="toggleMute" onclick="toggleMute()"><i class="fa-solid fa-volume-xmark"></i>&nbsp;Not Mute</div>
-                <div class="currentVideo"></div>
-                <div class="togglePlay" id="togglePlay" onclick="togglePlayPause()"><i class="fa-solid fa-pause"></i>&nbsp;Not Play</div>
-                </div>
-                
-                <div class="subtitleData poppingBox">subtitleData</div>
-            </div>
-            <div class="card boxContainer">
-                <div class="textData">
-                    <div class="currentIndexDiv">
-                        <div class="indexNow"></div> / <div class="indexMax"></div>
+    <div class="mainData">
+        <div class="container">
+            <div class="prevButton webButtons" id="prevButton" onclick="prevButtonClick()"><</div>
+            <section class="cardContainer shot">
+                <div class="videoContainer boxContainer">
+                    <div class="movieName">movieName</div>
+                    <video id="currentVideoLink" class="currentVideoLink" controls autoplay muted playsinline controlslist="nofullscreen"></video>
+                    <div class="videoControls">
+                    <div class="toggleMute" id="toggleMute" onclick="toggleMute()"><i class="fa-solid fa-volume-xmark"></i>&nbsp;Not Mute</div>
+                    <div class="currentVideo"></div>
+                    <div class="togglePlay" id="togglePlay" onclick="togglePlayPause()"><i class="fa-solid fa-pause"></i>&nbsp;Not Play</div>
                     </div>
-                    <h2 class="currentWord">currentWord</h2>
-                    <div class="currentMeaning">currentMeaning</div>
+                    
+                    <div class="subtitleData poppingBox">subtitleData</div>
                 </div>
+                <div class="card boxContainer">
+                    <div class="textData">
+                        <div class="currentIndexDiv">
+                            <div class="indexNow"></div> / <div class="indexMax"></div>
+                        </div>
+                        <div class="currentWord" onclick="textToSpeech()">currentWord</div>
+                        <div class="currentMeaning">currentMeaning</div>
+                    </div>
+                </div>
+            </section>
+            <div class="nextButton webButtons" id="nextButton" onclick="nextButtonClick()">></div>
+
+            <div class="mobileButtons">
+                <div class="prevButton" id="prevButton" onclick="prevButtonClick()">PREV</div>
+                <div class="nextButton" id="nextButton" onclick="nextButtonClick()">NEXT</div>
             </div>
-        </section>
-        <div class="nextButton webButtons" id="nextButton" onclick="nextButtonClick()">></div>
 
-        <div class="mobileButtons">
-            <div class="prevButton" id="prevButton" onclick="prevButtonClick()">PREV</div>
-            <div class="nextButton" id="nextButton" onclick="nextButtonClick()">NEXT</div>
         </div>
-
+        <div class="searchBar">
+            <div class="searchBarText">SEARCH HERE</div>
+            <input type="text" class="searchInput" onkeyup="search()" placeholder="GRE Word here.." />
+            <ul class="allWords"></ul>
+        </div>
+        <h1 class="temp">DISCLAIMER!</h1>
+        <h3 class="temp">This is just a test site to show what path I am on, so give me some inputs if you want to on "thatinsaneguy28@gmail.com" or the reddit post.</h3>
+        <h3 class="temp">This is just a test app, I own none of the content. If someone needs the credit then contact through the logo above.</h3>
     </div>
-    <h1 class="temp">DISCLAIMER!</h1>
-    <h3 class="temp">This is just a test site to show what path I am on, so give me some inputs if you want to on "thatinsaneguy28@gmail.com" or the reddit post.</h3>
-    <h3 class="temp">This is just a test app, I own none of the content. If someone needs the credit then contact through the logo above.</h3>
+    
 
     <script>
+        function textToSpeech(){
+            console.log("CJosdklmv");
+            var msg = new SpeechSynthesisUtterance();
+            msg.text = currentWord;
+            window.speechSynthesis.speak(msg);
+        }
+
         function toggleMute() {
             var video = document.getElementById("currentVideoLink");
             var toggleButton = document.getElementById("toggleMute")
@@ -99,8 +110,14 @@
     var allWordsElements = document.querySelector('.allWords');
     for (var i = 0; i < allData.length; i++) {
         var listItem = document.createElement('li');
-        listItem.textContent = allData[i]; // You can customize this based on your data structure
+        listItem.textContent = allData[i].toUpperCase();
         listItem.classList.add('thisWord');
+        listItem.setAttribute('value', allData[i]);
+        listItem.setAttribute('wordIndex', i);
+        listItem.addEventListener('click', function() {
+            initialValue = parseInt(this.getAttribute('wordIndex'));
+            loadSpecific(initialValue);
+        });
         allWordsElements.appendChild(listItem);
     }
     
@@ -109,9 +126,9 @@
     var currentWord = allData[initialValue];
     var currentData = myData[currentWord];
     var totalClips = 0;
-    updateData();
-    function updateData() {
-        currentWordElement.textContent = currentWord;
+    updateData(currentWord, currentData);
+    function updateData(currentWord, currentData) {
+        currentWordElement.innerHTML = currentWord + '&nbsp; <i class="icon fa-solid fa-volume-high"></i>';
         currentMeaningElement.textContent = currentData.meaning;
         videoURL = currentData.clipData['1'].videoURL;
         currentMovieNameElement.textContent = currentData.clipData['1'].videoInfo;
@@ -123,10 +140,11 @@
         currentVideoContainer.innerHTML = '';
         for (let i = 1; i <= totalClips; i++) {
             var videoNumberDiv = document.createElement('div');
+            videoNumberDiv.innerHTML = `<i class="fa-solid fa-compact-disc"></i>`;
+            // videoNumberDiv.textContent = `${i}`;
             if (i==1){ videoNumberDiv.classList.add('videoNumber', 'boxContainer');
             } else { videoNumberDiv.classList.add('videoNumber', 'poppingBox'); }
             videoNumberDiv.setAttribute('value', i);
-            videoNumberDiv.textContent = `Viedo ${i}`;
             videoNumberDiv.addEventListener('click', function() {
                 // Get the value of the clicked div and set it as the current index
                 Div = parseInt(this.getAttribute('value'));
@@ -134,9 +152,9 @@
             });
             currentVideoContainer.appendChild(videoNumberDiv);
         }
-
+        
+        console.log(maxValue, "maxValue", initialValue);
         currentIndexNowElement.textContent = initialValue+1;
-        console.log(maxValue, "maxValue");
         currentIndexMaxElement.textContent = maxValue+1;
 
 
@@ -180,7 +198,7 @@
             initialValue++;
             currentWord = allData[initialValue];
             currentData = myData[currentWord];
-            updateData();
+            updateData(currentWord, currentData);
         }
     }
 
@@ -189,8 +207,14 @@
             initialValue--;
             currentWord = allData[initialValue];
             currentData = myData[currentWord];
-            updateData();
+            updateData(currentWord, currentData);
         }
+    }
+
+    function loadSpecific(initialValue) {
+        currentWord = allData[initialValue];
+        currentData = myData[currentWord];
+        updateData(currentWord, currentData);
     }
 
     function goToYouTube() {
@@ -205,7 +229,6 @@
     function search() {
         let input = document.querySelector(".searchInput").value.toLowerCase()
         let list = document.querySelectorAll("ul > li")
-        let noItemsText = document.querySelector(".noItemsText")
         let displayCounter = 0
 
         list.forEach((lang) => {
@@ -214,9 +237,7 @@
             if (lang.style.display === "none"){displayCounter++;}
         });
         if (displayCounter === list.length){
-            list.innerHTML = "No items to display";
-            noItemsText.style.display = "initial"
-        } else { noItemsText.style.display = "none" }
+            list.innerHTML = "No items to display";}
     }
 </script>
 

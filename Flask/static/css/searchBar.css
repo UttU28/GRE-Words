@@ -3,48 +3,83 @@
 
 .searchBar{
     font-family: "Roboto";
-    width: 80%;
+    width: 100%;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
-    margin: 2vh;
+    margin: 2vh 0vh;
 }
 
 .searchBar input {
-    color: #808080;
-    font-size: 2.5vh;
-    width: 25%;
+    color: #45a530;
+    font-size: 2vh;
+    font-weight: bold;
+    width: 35%;
     padding: 10px;
-  box-shadow: inset 5px 5px 5px 0px rgba(0, 0, 0, 0.76), inset -2px -2px 4px 0px rgba(167, 167, 167, 0.15);
+    box-shadow: inset 5px 5px 5px 0px rgba(0, 0, 0, 0.76), inset -2px -2px 4px 0px rgba(167, 167, 167, 0.15);
     background: none;
     border-radius: 20px;
     border: none;
     outline: none;
-    margin-right: 2vh;
 }
 
 .searchBar .allWords {
     display: flex;
-    overflow-x: auto; /* or overflow-x: scroll; */
-    overflow-y: hidden;
+    align-items: center;
+    justify-content: center;
+    overflow-x: auto; 
+    overflow-y: scroll;
+    flex-wrap: wrap;
     width: 70%;
+    max-height: 50vh;
     padding-left: 2vh;
     color: #808080;
+}
+
+.allWords{
+    align-content: flex-start;
+    justify-content: flex-start;
 }
 
 .searchBar .allWords ::-webkit-scrollbar {
     width:0px;
   }
 
-.thisWord, .noItemsText{
+.thisWord{
     padding: 10px;
-    /* background: #808080; */
     text-decoration: none;
     list-style: none;
     border-radius: 20px;
-    /* margin-right: 2vh; */
+    font-family: "Roboto";
+    font-size: 2vh;
+    font-weight: bold;
     margin: 1vh;
-    margin-bottom: 2vh;
+    margin-bottom: 1vh;
     box-shadow: 10px 10px 10px 0px #000000c2, -2px -2px 10px 0px rgba(167, 167, 167, 0.15);
+}
+
+@media only screen and (max-width: 767px) {
+
+    .searchBar{
+        width: 100%;
+    }
+
+    .searchBar input {
+        font-size: 1.5vh;
+        width: 80%;
+    }
+
+    .searchBar .allWords {
+        width: 90%;   
+    }
+
     
+    .thisWord{
+        padding: 7px;
+        font-size: 1.5vh;
+        margin: 0.75vh;
+        margin-bottom: 0;
+    }
+
 }

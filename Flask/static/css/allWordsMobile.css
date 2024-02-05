@@ -1,45 +1,51 @@
 @media only screen and (max-width: 767px) {
 
-    .title{
+    .title {
         padding-top: 1vh;
         font-size: 5vh;
         font-weight: bold;
     }
 
-    .mobileButtons{
+    .mainData {
+        width: 92%;
+        display: block;
+    }
+
+    .mobileButtons {
         display: block;
         display: flex;
         width: 100%;
         justify-content: space-evenly;
         align-items: center;
-        
     }
 
-    .mobileButtons .prevButton, .mobileButtons .nextButton{
+    .mobileButtons .prevButton,
+    .mobileButtons .nextButton {
         margin-top: 0.5vh;
         padding: 1.5vh;
         font-size: 1.5vh;
         width: 40%;
     }
-    .webButtons{
+
+    .webButtons {
         display: none;
     }
 
     .container {
-        order: 1; /* Change the order to column-reverse for mobile view */
+        order: 1;
         flex-direction: column;
-      }
+    }
 
-    .videoNumber{
+    .videoNumber {
         padding: 1.5vh;
         font-size: 1.75vh;
     }
 
-    .movieName{
+    .movieName {
         font-size: 1vh;
-      }
+    }
 
-    .cardContainer{
+    .cardContainer {
         width: 100%;
         order: -1;
     }
@@ -47,40 +53,57 @@
     .currentWord {
         font-size: 3vh;
     }
-    
+
     .currentMeaning {
-    font-size: 2vh;
+        font-size: 2vh;
     }
 
-    .currentVideoLink{
+    .currentVideoLink {
         margin: 1vh 0 1vh 0;
         padding: 0;
+        height: 30vh;
     }
 
-    .card{
+    .card {
         padding: 2vh;
     }
 
-    .subtitleData{
-        font-size: 2vh;
+    .subtitleData {
+        font-size: 1.6vh;
         padding: 1vh;
         margin-bottom: 1vh;
     }
 
-    .currentText{
-        font-size: 2.2vh;
-      }
+    .currentText {
+        font-size: 1.8vh;
+    }
 
-      .logo{
+    .logo {
         width: 15%;
-  left: 2vh;
-  top: 2vh;
+        left: 2vh;
+        top: 2vh;
+    }
 
-      }
-      
-    .temp{
+    .temp {
         color: #4d4d4d;
         order: 2;
     }
+
+    .toggleMute,
+    .togglePlay {
+        width: 30%;
+        padding: 1vh;
+        border-radius: 10px;
+        font-size: 2vh;
+    }
+
+    .searchBarText{
+        font-size: 2.5vh;
+      }
+
+      .searchInput{
+        font-size: 1vh;
+      }
+      
 
 }

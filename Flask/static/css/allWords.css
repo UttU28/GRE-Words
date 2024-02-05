@@ -22,7 +22,12 @@ body{
     font-size: 5vh;
     font-weight: bold;
 }
-
+.mainData{
+  width: 100%;
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+}
 .currentIndexDiv{
   display: flex;
   color: #6dff62;
@@ -45,7 +50,6 @@ body{
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 10vh;
     width: 100%;
 }
 
@@ -65,6 +69,10 @@ body{
   color: #d0d0d0;
   font-size: 5vh;
   text-transform: uppercase;
+}
+
+.icon {
+  font-size: 3vh;
 }
 
 .currentMeaning {
@@ -162,14 +170,12 @@ body{
 
 .videoControls{
   display: flex;
-  width: 80%;
+  width: 95%;
   justify-content: space-evenly;
   margin-bottom: 5vh;
 }
 
 .toggleMute, .togglePlay {
-  padding: 2vh;
-  /* background: #45a530; */
   color: #45a530;
   justify-content: center;
   align-items: center;
@@ -178,7 +184,18 @@ body{
   padding: 2vh;
   border-radius: 10px;
   box-shadow: 10px 10px 10px 0px #000000c2, -2px -2px 10px 0px rgba(167, 167, 167, 0.15);
+  font-size: 2.5vh;
 }
+
+.searchBarText{
+  color: #d0d0d0;
+  font-family: "Roboto";
+  font-weight: bold;
+  font-size: 4vh;
+  margin-bottom: 1vh;
+}
+
+
 
 /* Scrollbar Styling */
 ::-webkit-scrollbar {
