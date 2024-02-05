@@ -1,5 +1,11 @@
 import React, { useRef, useState } from 'react';
-import { Text, View, StyleSheet, Image, Dimensions, FlatList } from 'react-native';
+import { Text, View, StyleSheet, Image, Dimensions, Platform, FlatList, Button } from 'react-native';
+import { ResizeMode, Video } from 'expo-av';
+
+const { width, height } = Dimensions.get('window');
+const isMobile = Platform.OS === 'android' || Platform.OS === 'ios';
+
+
 const abate = {
   "meaning": "Reduce, diminish",
   "wordIndex": 2,
@@ -7,7 +13,7 @@ const abate = {
   "clipsFound": 4,
   "clipData": {
     "1": {
-      "videoURL": "https://wallpapers.com/images/featured/deadpool-tzhfez1w8ud2z8aw.jpg",
+      "videoURL": "https://www.playphrase.me/video/5b183a2a8079eb4cd4a588b3/62952c6eb071e724e9e59568.mp4",
       "subtitle": "There lives within the very flame of love... a kind of wick or snuff that will abate it.",
       "videoInfo": "Hamlet (1996) [03:00:25]"
     },
@@ -35,6 +41,8 @@ export const cardWidth = Dimensions.get('screen').width * 0.8;
 const SwiperCards = () => {
   const video = useRef(null);
   const [status, setStatus] = useState({});
+  const videoWidth = isMobile ? width * 0.95 : width * 0.4;
+
   
   return (
     <FlatList style={styles.container}
@@ -44,7 +52,23 @@ const SwiperCards = () => {
         <View style={styles.card}>
           <Text style={styles.word}>{"abate"}</Text>
           <Text style={styles.meaning}>{abate.meaning}</Text>
-          <Image style={styles.image} source={{ uri: item.videoURL }} />
+          <Video
+            videoStyle={[styles.video, { width: videoWidth }]}
+            ref={video}
+            style={[styles.video, { width: videoWidth }]}
+            source={{uri: 'https://www.playphrase.me/video/5b183a2a8079eb4cd4a588b3/62952c6eb071e724e9e59568.mp4',}}
+            useNativeControls
+            resizeMode={ResizeMode.CONTAIN}
+            isLooping
+            onPlaybackStatusUpdate={(status) => setStatus(() => status)}
+          />
+          <View style={styles.buttons}>
+          <Button
+            style={styles.testButton}
+            title={(status.isPlaying ? 'Pause' : 'Play')}
+            onPress={() =>status.isPlaying? video.current.pauseAsync(): video.current.playAsync()}
+          />
+          </View>
           <Text style={styles.movieName}>{item.videoInfo}</Text>
           <Text style={styles.subtitleData}>{item.subtitle}</Text>
         </View>
@@ -58,22 +82,21 @@ const SwiperCards = () => {
 const styles = StyleSheet.create({
     container: {
         width: cardWidth,
-        marginTop: "25%",
-
     },
   card: {
     width: cardWidth,
     aspectRatio: 1 / 1.67,
     backgroundColor: '#ecf0f1',
+    alignItems:"center",
   },
   name: {
     textAlign: 'center', // Add this to center the text
     fontSize: 18, // Set your desired font size
   },
-  image: {
-    width: "100%",
-    height: "50%",
-    borderRadius: 15,
+  video: {
+    alignSelf: 'center',
+    aspectRatio: 1.672/1,
+    // height: height * 0.4, // Adjust the height as needed
   },
   word: {textTransform: "uppercase", fontFamily: "Roboto"},
   meaning: {},

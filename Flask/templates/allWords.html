@@ -9,20 +9,29 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/cyberPunk.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/allWords.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/allWordsMobile.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/searchBar.css') }}">
+    <script src="https://kit.fontawesome.com/0225e86616.js" crossorigin="anonymous"></script>
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 </head>
 <body>
     <img class="logo" src="{{ url_for('static', filename='images/logo.png') }}" alt="" srcset="" onclick="goToYouTube()">
     <div class="title">GRE Words</div>
+    <div class="searchBar">
+        <input type="text" class="searchInput" onkeyup="search()" placeholder="Search for.." autofocus />
+        <ul class="allWords"></ul>
+    </div>
     <div class="container">
         <div class="prevButton webButtons" id="prevButton" onclick="prevButtonClick()"><</div>
         <section class="cardContainer shot">
             <div class="videoContainer boxContainer">
-                <div class="currentVideo"></div>
                 <div class="movieName">movieName</div>
-                <video id="currentVideoLink" class="currentVideoLink" controls autoplay controlslist="nofullscreen"></video>
-                <input type="checkbox" id="muteCheckbox" name="muteCheckbox" value="mute"> Mute
-                <label for="vehicle1">MUTE AUDIO</label>
+                <video id="currentVideoLink" class="currentVideoLink" controls autoplay muted controlslist="nofullscreen"></video>
+                <div class="videoControls">
+                <div class="toggleMute" id="toggleMute" onclick="toggleMute()"><i class="fa-solid fa-volume-xmark"></i>&nbsp;Not Mute</div>
+                <div class="currentVideo"></div>
+                <div class="togglePlay" id="togglePlay" onclick="togglePlayPause()"><i class="fa-solid fa-pause"></i>&nbsp;Not Play</div>
+                </div>
+                
                 <div class="subtitleData poppingBox">subtitleData</div>
             </div>
             <div class="card boxContainer">
@@ -47,6 +56,31 @@
     <h3 class="temp">This is just a test site to show what path I am on, so give me some inputs if you want to on "thatinsaneguy28@gmail.com" or the reddit post.</h3>
     <h3 class="temp">This is just a test app, I own none of the content. If someone needs the credit then contact through the logo above.</h3>
 
+    <script>
+        function toggleMute() {
+            var video = document.getElementById("currentVideoLink");
+            var toggleButton = document.getElementById("toggleMute")
+            if (video.muted) {
+                video.muted = false;
+                toggleButton.innerHTML = '<i class="fa-solid fa-volume-high"></i>&nbsp;Mute';
+            } else {
+                video.muted = true;
+                toggleButton.innerHTML = '<i class="fa-solid fa-volume-xmark"></i>&nbsp;Not Mute';
+            }
+        }
+        function togglePlayPause() {
+            var video = document.getElementById("currentVideoLink");
+            var toggleButton = document.getElementById("togglePlay")
+            if (video.paused) {
+                video.play();
+                toggleButton.innerHTML = '<i class="fa-solid fa-pause"></i>&nbsp;Not Play';
+            } else {
+                video.pause();
+                toggleButton.innerHTML = '<i class="fa-solid fa-play"></i>&nbsp;Play';
+            }
+        }
+    </script>
+
 <script>
     var myData = {{ data | tojson | safe }};
     var allData = {{ allData | safe }};
@@ -62,6 +96,14 @@
 
     var currentIndexNowElement = document.querySelector('.indexNow');
     var currentIndexMaxElement = document.querySelector('.indexMax');
+    var allWordsElements = document.querySelector('.allWords');
+    for (var i = 0; i < allData.length; i++) {
+        var listItem = document.createElement('li');
+        listItem.textContent = allData[i]; // You can customize this based on your data structure
+        listItem.classList.add('thisWord');
+        allWordsElements.appendChild(listItem);
+    }
+    
 
     var Div = 1;
     var currentWord = allData[initialValue];
@@ -84,7 +126,7 @@
             if (i==1){ videoNumberDiv.classList.add('videoNumber', 'boxContainer');
             } else { videoNumberDiv.classList.add('videoNumber', 'poppingBox'); }
             videoNumberDiv.setAttribute('value', i);
-            videoNumberDiv.textContent = `Video ${i}`;
+            videoNumberDiv.textContent = `Viedo ${i}`;
             videoNumberDiv.addEventListener('click', function() {
                 // Get the value of the clicked div and set it as the current index
                 Div = parseInt(this.getAttribute('value'));
@@ -155,17 +197,27 @@
         window.open('https://www.youtube.com/@ThatInsaneGuy', '_blank');
     }
 
-    var muteCheckbox = document.getElementById('muteCheckbox');
-    muteCheckbox.addEventListener('click', function() {
-        if (muteCheckbox.checked) {currentVideoLinkElement.muted = true;
-        } else {currentVideoLinkElement.muted = false;}
-    });
-    autoplayButton.addEventListener('click', function() {
-        videoElement.autoplay = !videoElement.autoplay;
-    });
+</script>
+<script>
+    // SEARCH BAR
+    var mainData = {{ data | tojson | safe }};
+    var allData = {{ allData | safe }};
+    function search() {
+        let input = document.querySelector(".searchInput").value.toLowerCase()
+        let list = document.querySelectorAll("ul > li")
+        let noItemsText = document.querySelector(".noItemsText")
+        let displayCounter = 0
 
-    // document.getElementById('nextButton').addEventListener('click', nextButtonClick);
-    // document.getElementById('prevButton').addEventListener('click', prevButtonClick);
+        list.forEach((lang) => {
+            if ((lang.innerHTML.toLowerCase()).includes(input, 0) === false){lang.style.display = "none";} 
+            else {lang.style.display = "list-item";}
+            if (lang.style.display === "none"){displayCounter++;}
+        });
+        if (displayCounter === list.length){
+            list.innerHTML = "No items to display";
+            noItemsText.style.display = "initial"
+        } else { noItemsText.style.display = "none" }
+    }
 </script>
 
 </body>
