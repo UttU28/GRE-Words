@@ -15,6 +15,7 @@
 </head>
 <body>
     <img class="logo" src="{{ url_for('static', filename='images/logo.png') }}" alt="" srcset="" onclick="goToYouTube()">
+    <img class="trishul" src="{{ url_for('static', filename='images/trishul.svg') }}" alt="" srcset="" onclick="goToYouTube()">
     <div class="title">GRE Words</div>
     <div class="mainData">
         <div class="container">
@@ -54,10 +55,18 @@
             <input type="text" class="searchInput" onkeyup="search()" placeholder="GRE Word here.." />
             <ul class="allWords"></ul>
         </div>
+
+        <div class="about">
+            <div class="aboutHeader">ABOUT... idk</div>
+            <div class="aboutText">Hey, this is Utsav Chaudhary. I'm <span class="highlight">CS Masters Graduate</span> from <span class="highlight">Binghamton University</span>. While studying for my <span class="highlight">GRE</span> and <span class="highlight">IELTS</span>, I was struggling with <span class="highlight">VOCAB</span> a bit. and to be honest I still am, which you can see in this text.<br>So me and my friend had this idea for this app that teaches spelling and pronounciation of the words in a fun way in 2021. But didn't have time back then. But now why not make it if it helps you all.<br>And if you want to give any <span class="highlight">SUGGESTION for this site</span> or wanna contact me you can visit my <span class="youTube" onclick=goToYouTube()><i class="fa-brands fa-youtube"></i>  YouTube</span> here.</div>
+        </div>
+
+        <h1 class="temp">FIRST RELEASE: 5th Feb 2024!</h1>
         <h1 class="temp">DISCLAIMER!</h1>
         <h3 class="temp">This is just a test site to show what path I am on, so give me some inputs if you want to on "thatinsaneguy28@gmail.com" or the reddit post.</h3>
         <h3 class="temp">This is just a test app, I own none of the content. If someone needs the credit then contact through the logo above.</h3>
     </div>
+    <div class="bottomSpace"></div>
     
 
     <script>
@@ -224,8 +233,6 @@
 </script>
 <script>
     // SEARCH BAR
-    var mainData = {{ data | tojson | safe }};
-    var allData = {{ allData | safe }};
     function search() {
         let input = document.querySelector(".searchInput").value.toLowerCase()
         let list = document.querySelectorAll("ul > li")

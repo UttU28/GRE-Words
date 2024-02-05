@@ -37,7 +37,7 @@
     }
 
     .videoNumber {
-        padding: 1.5vh;
+        padding: 0.5vh;
         font-size: 1.75vh;
     }
 
@@ -104,6 +104,50 @@
       .searchInput{
         font-size: 1vh;
       }
+
+    .bottomSpace{
+        height: 50vh;
+    }
+
+    
+.about{
+    width: 100%;
+  }
+  
+  .aboutHeader{
+    margin-top: 3vh;
+    font-size: 3.5vh;
+  }
+  
+  .aboutText{
+    margin-top: 1vh;
+    color: #d0d0d0;
+    font-family: 'Roboto';
+    font-size: 2.5vh;
+    width: 92%;
+}
+  
+.aboutText .highlight{
+    font-size: 2.7vh;
+  }
+
+  .aboutText .youTube{
+    font-size: 2.7vh;
+  }
+
+  .logo {
+    width: 15%;
+    left: 2vh;
+    top: 2vh;
+}
+
+  .trishul{
+    width: 12%;
+    right: 1vh;
+    top: 1vh;
+    transform: rotate(15deg);
+  }
+  
       
 
 }

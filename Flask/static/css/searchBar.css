@@ -22,6 +22,7 @@
     border-radius: 20px;
     border: none;
     outline: none;
+    margin-bottom: 2vh;
 }
 
 .searchBar .allWords {

@@ -10,10 +10,20 @@ body{
 
 .logo{
   width: 5%;
-  position: absolute;
+  position: fixed;
   left: 5vh;
   top: 5vh;
-  
+  cursor: pointer;
+}
+
+.trishul{
+  width: 6%;
+  position: fixed;
+  right: 3vh;
+  top: 3vh;
+  filter: drop-shadow( 1px 1px 1.5px rgba(14, 255, 6, 0.7));
+  transform: rotate(15deg);
+  cursor: pointer;
 }
 
 .title{
@@ -69,6 +79,8 @@ body{
   color: #d0d0d0;
   font-size: 5vh;
   text-transform: uppercase;
+  cursor: pointer;
+
 }
 
 .icon {
@@ -195,6 +207,50 @@ body{
   margin-bottom: 1vh;
 }
 
+.about{
+  width: 70%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.aboutHeader{
+  margin-top: 5vh;
+  text-align: center;
+  color: #45a530;
+  font-family: 'Roboto';
+  font-size: 5vh;
+  font-weight: bold;
+}
+
+.aboutText{
+  margin-top: 2vh;
+  color: #d0d0d0;
+  font-family: 'Roboto';
+  font-size: 3vh;
+  box-shadow: inset 5px 5px 5px 0px rgba(0, 0, 0, 0.76), inset -2px -2px 4px 0px rgba(167, 167, 167, 0.15);
+  padding: 20px;
+  border-radius: 20px;
+  margin-top: 5vh;
+}
+
+.aboutText .highlight{
+  color: #45a530;
+  font-family: 'Roboto';
+  font-size: 3.2vh;
+  font-weight: bold;
+}
+
+.aboutText .youTube{
+  color: #f40f0f;
+  font-family: 'Roboto';
+  font-size: 3.5vh;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+
 
 
 /* Scrollbar Styling */
@@ -213,4 +269,13 @@ body{
   -webkit-border-radius: 10px;
   border-radius: 10px;
   background: #5aee5a;
+}
+
+.bottomSpace{
+  height: 40vh;
+}
+
+.temp{
+  font-family: "Roboto";
+  font-size: small;
 }
