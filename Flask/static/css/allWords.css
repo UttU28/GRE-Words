@@ -184,7 +184,7 @@ body{
   display: flex;
   width: 95%;
   justify-content: space-evenly;
-  margin-bottom: 5vh;
+  margin-bottom: 2vh;
 }
 
 .toggleMute, .togglePlay {
