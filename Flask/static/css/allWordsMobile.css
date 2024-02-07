@@ -89,8 +89,7 @@
         order: 2;
     }
 
-    .toggleMute,
-    .togglePlay {
+    .buttonStylei{
         width: 30%;
         padding: 1vh;
         border-radius: 10px;

@@ -37,6 +37,14 @@ def swipe():
     print("Swiped card:", dataTemp)
     return jsonify({"message": "Swipe data received successfully!"})
 
+@app.route('/admi')
+def admi():
+    admiData = None
+    with open('userAccessLogs.json', 'r') as file:
+        admiData = json.load(file)
+    print(admiData)
+    # admiData = {key: value for key, value in admiData.items()}
+    return render_template('admi.html', admiData=admiData)
 
 if __name__ == "__main__":
     # app.run()

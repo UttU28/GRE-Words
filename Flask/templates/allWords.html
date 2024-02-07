@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>All Words</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <!-- Assuming you have a valid path to your CSS file -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/cyberPunk.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/allWords.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/allWordsMobile.css') }}">
@@ -25,9 +25,9 @@
                     <div class="movieName">movieName</div>
                     <video id="currentVideoLink" class="currentVideoLink" controls autoplay muted playsinline controlslist="nofullscreen"></video>
                     <div class="videoControls">
-                    <div class="toggleMute" id="toggleMute" onclick="toggleMute()"><i class="fa-solid fa-volume-xmark"></i>&nbsp;Not Mute</div>
+                    <div class="buttonStylei toggleMute" id="toggleMute" onclick="toggleMute()"><i class="fa-solid fa-volume-xmark"></i>&nbsp;Not Mute</div>
                     <div class="currentVideo"></div>
-                    <div class="togglePlay" id="togglePlay" onclick="togglePlayPause()"><i class="fa-solid fa-pause"></i>&nbsp;Not Play</div>
+                    <div class="buttonStylei togglePlay" id="togglePlay" onclick="togglePlayPause()"><i class="fa-solid fa-pause"></i>&nbsp;Not Play</div>
                     </div>
                     
                     <div class="subtitleData poppingBox">subtitleData</div>
