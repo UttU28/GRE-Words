@@ -4,12 +4,14 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import json
+from tqdm import tqdm  # Import tqdm
 
 filePath = "greWords.json"
 with open(filePath, "r") as file:
     data = json.load(file)
 
 chrome_options = webdriver.ChromeOptions()
+chrome_options.add_argument("--headless")
 # chrome_options.add_argument("--incognito")
 def clearCookies():
     driver.delete_all_cookies()
@@ -20,7 +22,7 @@ def clearCookies():
 
 try:
     for currentWord, wordData in data.items():
-        print(currentWord)
+        print(data.keys().index(currentWord))
         if not wordData["searched"]:
             driver = webdriver.Chrome(options=chrome_options)
             driver.maximize_window()

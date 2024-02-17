@@ -17,7 +17,7 @@ def getWordNumber(number):
     temp = str(number)
     return len(temp)+1, temp + "."
 
-fileName = "wordList.pdf"
+fileName = "ManhattanPrep1000.pdf"
 content = readPDF(fileName)
 
 content = content.split("\n")
