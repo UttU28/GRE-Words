@@ -6,7 +6,7 @@ width, height = 1080, 1920
 
 
 backgroundColor = "#171A21"
-sampleText = ImageFont.truetype("Roboto-Black.ttf", 30)
+sampleText = ImageFont.truetype("edo.ttf", 40)
 currentWordFont = ImageFont.truetype("Roboto-Black.ttf", 75)
 currentDefFont = ImageFont.truetype("Roboto-Black.ttf", 50)
 currentSubtitleFont = ImageFont.truetype("Roboto-Black.ttf", 50)
@@ -41,32 +41,37 @@ def imageTextGenerator(draw, text, currentSubtitleFont, paddingTop):
     return finalMultilineText, finalTitleFont, x, y
 
 def generateImage(currentWord, currentDef, currentSubtitle, index):
-    img = Image.new("RGB", (width, height), hex2rgb(backgroundColor))
+    originalImage = "woKyaBolRahi.png"
+    original_image = Image.open(originalImage)
+    img = original_image.copy()
+    
     draw = ImageDraw.Draw(img)
 
-    draw.text((50, 75), "TODAY'S WORD", font=sampleText, fill='#ffffff')
-    multilineText, font, positionX, positionY = imageTextGenerator(draw, currentWord.upper(), currentWordFont, paddingTop=110)
-    draw.multiline_text(xy=(positionX, positionY), text=multilineText, font=font, align="center", fill="#92BCEA", anchor="ma")
+    draw.text((50, 275), "TODAY'S WORD", font=sampleText, fill='#f88f55')
+    multilineText, font, positionX, positionY = imageTextGenerator(draw, currentWord.upper(), currentWordFont, paddingTop=310)
+    draw.multiline_text(xy=(positionX, positionY), text=multilineText, font=font, align="center", fill="#77e03a", anchor="ma")
 
-    draw.text((50, 210), "DEFINITION", font=sampleText, fill='#ffffff')
+    draw.text((50, 410), "DEFINITION", font=sampleText, fill='#f88f55')
     wrappedText = textwrap.fill(currentDef, width=45)  # Adjust the width as needed
-    text_position = (50, 245)
-    multilineText, font, positionX, positionY = imageTextGenerator(draw, currentDef, currentDefFont, paddingTop=245)
-    draw.multiline_text(xy=(positionX, positionY), text=multilineText, font=font, align="left", fill="#92BCEA", anchor="ma")
-    # bbox = draw.multiline_text(xy=(positionX, positionY), text=multilineText, font=font, align="left", fill="#92BCEA", anchor="ma")
+    text_position = (50, 445)
+    multilineText, font, positionX, positionY = imageTextGenerator(draw, currentDef, currentDefFont, paddingTop=450)
+    draw.multiline_text(xy=(positionX, positionY), text=multilineText, font=font, align="left", fill="#77e03a", anchor="ma")
+    # bbox = draw.multiline_text(xy=(positionX, positionY), text=multilineText, font=font, align="left", fill="#77e03a", anchor="ma")
 
     bbox = draw.textbbox(text_position, wrappedText, font=currentDefFont)
-    videoStartHeight = abs(bbox[1] - bbox[3]) + 245
-    draw.text((50, videoStartHeight + 40), "VIDEO", font=sampleText, fill='#ffffff')
+    videoStartHeight = abs(bbox[1] - bbox[3]) + 500
+    draw.text((50, videoStartHeight), "VIDEO", font=sampleText, fill='#f88f55')
 
+    videoStartHeight += 50
     videoEndHeight = videoStartHeight + 800
     multilineText, font, positionX, positionY = imageTextGenerator(draw, currentSubtitle, currentSubtitleFont, paddingTop=videoEndHeight)
-    draw.multiline_text(xy=(positionX, positionY), text=multilineText, font=font, align="center", fill="white", anchor="ma")
-
+    draw.multiline_text(xy=(positionX, positionY), text=multilineText, font=font, align="center", fill="#e5efac", anchor="ma")
 
     # img.show()
     # img.save("image.png", "PNG")
     img.save(f"./images/{currentWord}{index}.png", "PNG")
+
+    return videoStartHeight
 
 
     # img.save(f"{currentWord}{index}.png", "PNG")
