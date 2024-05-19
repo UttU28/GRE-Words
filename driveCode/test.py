@@ -1,38 +1,46 @@
-
 import os
 import json
-import subprocess
+import requests
 
-import subprocess
+file_path = "videoResources/greWords.json"
 
-def concatVideos(videoList, outputPath):
-    with open('videoList.txt', 'w') as file:
-        for video in videoList:
-            file.write(f"file '{video}'\n")
-        # file.write(f"file 'videoResources/endVideo.mp4'\n")
+with open(file_path, "r") as file:
+    data = json.load(file)
 
-    ffmpeg_command = [
-        'ffmpeg',
-        '-f', 'concat',
-        '-safe', '0',  # Allow unsafe file names
-        '-i', 'videoList.txt',
-        '-c', 'copy',
-        outputPath
-    ]
-    subprocess.run(ffmpeg_command)
-    os.remove('videoList.txt')
+outputDirectory = "downloadedVideos/"
+os.makedirs(outputDirectory, exist_ok=True)
 
-with open("videoResources/greWords.json", "r") as allWords:
-    allWordsData = json.load(allWords)
+# Function to download videos for a specific batch
+def download_batch(start_index, end_index):
+    for currentWord, wordData in list(data.items())[start_index:end_index]:
+        for clip_index, clip_info in wordData["clipData"].items():
+            video_url = clip_info["videoURL"]
+            video_info = clip_info["videoInfo"]
 
-for currentWord, wordData in allWordsData.items():
-    videosToMerge = []
-    for i in range(1, wordData['clipsFound'] + 1):
-        allVideoDir = f"mergedVideos/{currentWord}{i}.mp4"
-        if os.path.exists(allVideoDir):
-            videosToMerge.append(allVideoDir)
+            file_name = f"{currentWord}_clip{clip_index}_{video_info.replace(' ', '_')}.mp4"
+            file_path = os.path.join(outputDirectory, file_name)
 
-    if len(videosToMerge) >= 1:
-        print(f"Merging videos for {currentWord.upper()}")
-        outputPath = f'finalVideos/{currentWord.capitalize()}.mp4'
-        concatVideos(videosToMerge, outputPath)
+            response = requests.get(video_url, stream=True)
+            with open(file_path, "wb") as video_file:
+                for chunk in response.iter_content(chunk_size=1024 * 1024):
+                    if chunk:
+                        video_file.write(chunk)
+
+            print(f"Downloaded video: {file_name}")
+
+# Define batch size
+batch_size = 10
+
+# Calculate the number of batches
+num_batches = (len(data) + batch_size - 1) // batch_size
+
+try:
+    batch_number = 1
+    if 1 <= batch_number <= num_batches:
+        start_index = (batch_number - 1) * batch_size
+        end_index = min(batch_number * batch_size, len(data))
+        download_batch(start_index, end_index)
+    else:
+        print("Invalid batch number.")
+except ValueError:
+    print("Invalid input. Please enter a number.")
