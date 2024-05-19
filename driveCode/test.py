@@ -31,10 +31,10 @@ def merge_videos(video_files, output_file):
     subprocess.run(['ffmpeg', *input_files, '-filter_complex', 'concat=n={}:v=1:a=1'.format(len(video_files)), '-c:v', 'copy', '-c:a', 'copy', output_file])
 
 # Source video file to extract format information
-source_video = 'downloadedVideos/plummet2.mp4'
+source_video = 'mergedVideos/plummet1.mp4'
 
 # Destination folder for converted videos
-output_folder = 'converted_videos'
+output_folder = 'conVieos'
 os.makedirs(output_folder, exist_ok=True)
 
 # Get video information from source video
