@@ -1,38 +1,34 @@
-
+import requests
 import os
-import json
-import subprocess
 
-import subprocess
+def download_file(url, filename):
+    response = requests.get(url, stream=True)
+    if response.status_code == 200:
+        with open(filename, 'wb') as f:
+            for chunk in response.iter_content(chunk_size=1024):
+                if chunk:
+                    f.write(chunk)
+        print(f"Downloaded {filename}")
+    else:
+        print(f"Failed to download {filename}")
 
-def concatVideos(videoList, outputPath):
-    with open('videoList.txt', 'w') as file:
-        for video in videoList:
-            file.write(f"file '{video}'\n")
-        # file.write(f"file 'videoResources/endVideo.mp4'\n")
+def merge_audio_video(video_file, audio_file, output_file):
+    command = f"ffmpeg -i {video_file} -i {audio_file} -c:v copy -c:a aac {output_file}"
+    os.system(command)
+    print(f"Merged video saved as {output_file}")
 
-    ffmpeg_command = [
-        'ffmpeg',
-        '-f', 'concat',
-        '-safe', '0',  # Allow unsafe file names
-        '-i', 'videoList.txt',
-        '-c', 'copy',
-        outputPath
-    ]
-    subprocess.run(ffmpeg_command)
-    os.remove('videoList.txt')
+# URLs for the video and audio streams (example, modify if necessary)
+video_url = "https://s3.us-west-1.wasabisys.com/video-us.playphrase.me/english-storage/5b96add2cc77853d88561744/628b88deb071e717a65fa251.mp4"
+audio_url = "https://example.com/audio-file.mp4"  # Replace with actual audio URL if different
 
-with open("videoResources/greWords.json", "r") as allWords:
-    allWordsData = json.load(allWords)
+# Filenames for the downloaded video and audio
+video_file = "video.mp4"
+audio_file = "audio.mp4"
+output_file = "output.mp4"
 
-for currentWord, wordData in allWordsData.items():
-    videosToMerge = []
-    for i in range(1, wordData['clipsFound'] + 1):
-        allVideoDir = f"mergedVideos/{currentWord}{i}.mp4"
-        if os.path.exists(allVideoDir):
-            videosToMerge.append(allVideoDir)
+# Download video and audio streams
+download_file(video_url, video_file)
+download_file(audio_url, audio_file)
 
-    if len(videosToMerge) >= 1:
-        print(f"Merging videos for {currentWord.upper()}")
-        outputPath = f'finalVideos/{currentWord.capitalize()}.mp4'
-        concatVideos(videosToMerge, outputPath)
+# Merge video and audio streams
+merge_audio_video(video_file, audio_file, output_file)
