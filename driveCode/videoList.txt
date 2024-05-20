@@ -1,9 +1,0 @@
-file 'mergedVideos/sanguine1.mp4'
-file fillerVideo.mp4
-file 'mergedVideos/sanguine2.mp4'
-file fillerVideo.mp4
-file 'mergedVideos/sanguine3.mp4'
-file fillerVideo.mp4
-file 'mergedVideos/sanguine4.mp4'
-file fillerVideo.mp4
-file endVideo.mp4
