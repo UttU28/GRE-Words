@@ -41,7 +41,7 @@ os.makedirs(output_folder, exist_ok=True)
 source_info = get_video_info(source_video)
 
 # Convert other video files to same format
-video_files_to_convert = ['endVideo.mp4', 'fillerVideo.mp4']
+video_files_to_convert = ['oendVideo.mp4', 'ofillerVideo.mp4']
 for video_file in video_files_to_convert:
     output_file = os.path.join(output_folder, os.path.basename(video_file))
     convert_video(video_file, output_file, source_info)
