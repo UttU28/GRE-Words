@@ -252,14 +252,17 @@ def concatVideos(videoList, outputPath):
     with open('videoList.txt', 'w') as file:
         for video in videoList:
             file.write(f"file '{video}'\n")
+            file.write(f"file fillerVideo.mp4\n")
+        file.write(f"file endVideo.mp4\n")
         # file.write(f"file 'videoResources/endVideo.mp4'\n")
 
     ffmpeg_command = [
-        'ffmpeg',
-        '-f', 'concat',
-        '-safe', '0',  # Allow unsafe file names
+        'ffmpeg', 
+        '-f', 'concat', 
         '-i', 'videoList.txt',
-        '-c', 'copy',
+        '-vf', 'fps=30,scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2', 
+        '-b:v', '2M', 
+        '-c:a', 'copy', 
         outputPath
     ]
     subprocess.run(ffmpeg_command)
@@ -281,31 +284,3 @@ for currentWord, wordData in allWordsData.items():
         concatVideos(videosToMerge, outputPath)
 
 """# **KACHRA NAHI HAI MEHNAT HAI YE**"""
-
-# ! ffmpeg -loop 1 -i videoResources/woKyaBolRahi.png -c:v libx264 -t 2 -vf "scale=1920:1080" -pix_fmt yuv420p output.mp4
-# ! ffmpeg -loop 1 -i videoResources/woKyaBolRahiEnd.png -c:v libx264 -t 5 -vf "scale=1920:1080" -pix_fmt yuv420p output.mp4
-# ! ffmpeg -i endVideo.mp4 -f lavfi -i anullsrc -c:v copy -shortest -map 0:v -map 1:a -y videoResources/endVideo.mp4
-
-ffmpeg_command = [
-    'ffmpeg',
-    '-loop', '1', '-i', 'videoResources/woKyaBolRahi.png',
-    '-t', '2',  # Set the duration of the video (adjust as needed)
-    '-c:v', 'libx264',
-    '-pix_fmt', 'yuv420p',
-    '-c:a', 'aac',  # Set the audio codec to AAC
-    '-strict', 'experimental',
-    '-b:a', '192k',  # Set the audio bitrate (adjust as needed)
-    '-shortest',  # Finish encoding when the shortest input stream ends
-    '-map', '0:v',  # Map the video stream from the first input
-    '-y', 'videoResources/fillerVideo.mp4'
-]
-
-subprocess.run(ffmpeg_command)
-
-# !ffmpeg -i mergedVideos/plummet1.mp4 -c copy -bsf:v h264_mp4toannexb -f mpegts temp1.ts
-# !ffmpeg -i mergedVideos/plummet2.mp4 -c copy -bsf:v h264_mp4toannexb -f mpegts temp2.ts
-# !ffmpeg -i mergedVideos/plummet3.mp4 -c copy -bsf:v h264_mp4toannexb -f mpegts temp3.ts
-# !ffmpeg -i mergedVideos/plummet4.mp4 -c copy -bsf:v h264_mp4toannexb -f mpegts temp4.ts
-# !ffmpeg -i videoResources/fillerVideo.mp4 -c copy -bsf:v h264_mp4toannexb -f mpegts temp5.ts
-# !ffmpeg -i "concat:temp1.ts|temp5.ts|temp2.ts|temp3.ts|temp4.ts" -c copy -bsf:a aac_adtstoasc output.mp4
-

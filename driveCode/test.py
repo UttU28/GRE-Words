@@ -1,53 +1,39 @@
+
 import os
-import subprocess
 import json
+import subprocess
 
-def get_video_info(video_file):
-    # Run ffprobe to get video information
-    result = subprocess.run(['ffprobe', '-v', 'error', '-show_format', '-show_streams', '-print_format', 'json', video_file], capture_output=True)
-    
-    # Parse the JSON output
-    info = json.loads(result.stdout)
-    return info
+def concatVideos(videoList, outputPath):
+    with open('videoList.txt', 'w') as file:
+        for video in videoList:
+            file.write(f"file '{video}'\n")
+            file.write(f"file fillerVideo.mp4\n")
+        file.write(f"file endVideo.mp4\n")
+        # file.write(f"file 'videoResources/endVideo.mp4'\n")
 
-def convert_video(input_file, output_file, video_info):
-    # Extract video and audio codec information
-    video_codec = video_info['streams'][0]['codec_name']
-    audio_codec = video_info['streams'][1]['codec_name']
-    
-    # Extract video bitrate
-    video_bitrate = video_info['streams'][0]['bit_rate']
-    
-    # Use ffmpeg to convert video to same format
-    subprocess.run(['ffmpeg', '-i', input_file, '-c:v', video_codec, '-c:a', audio_codec, '-b:v', str(video_bitrate), output_file])
+    ffmpeg_command = [
+        'ffmpeg', 
+        '-f', 'concat', 
+        '-i', 'videoList.txt',
+        '-vf', 'fps=30,scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2', 
+        '-b:v', '2M', 
+        '-c:a', 'copy', 
+        outputPath
+    ]
+    subprocess.run(ffmpeg_command)
+    os.remove('videoList.txt')
 
-def merge_videos(video_files, output_file):
-    # Create a list of input files for ffmpeg
-    input_files = []
-    for file in video_files:
-        input_files.extend(['-i', file])
-    
-    # Use ffmpeg to merge videos
+with open("videoResources/greWords.json", "r") as allWords:
+    allWordsData = json.load(allWords)
 
-# Source video file to extract format information
-source_video = 'mergedVideos/plummet1.mp4'
+for currentWord, wordData in allWordsData.items():
+    videosToMerge = []
+    for i in range(1, wordData['clipsFound'] + 1):
+        allVideoDir = f"mergedVideos/{currentWord}{i}.mp4"
+        if os.path.exists(allVideoDir):
+            videosToMerge.append(allVideoDir)
 
-# Destination folder for converted videos
-output_folder = 'conVieos'
-os.makedirs(output_folder, exist_ok=True)
-
-# Get video information from source video
-source_info = get_video_info(source_video)
-
-# Convert other video files to same format
-video_files_to_convert = ['oendVideo.mp4', 'ofillerVideo.mp4']
-for video_file in video_files_to_convert:
-    output_file = os.path.join(output_folder, os.path.basename(video_file))
-    convert_video(video_file, output_file, source_info)
-
-# List of converted video files
-converted_video_files = [os.path.join(output_folder, file) for file in os.listdir(output_folder)]
-
-# Merge converted videos
-output_video = 'merged_video.mp4'
-merge_videos(converted_video_files, output_video)
+    if len(videosToMerge) >= 1:
+        print(f"Merging videos for {currentWord.upper()}")
+        outputPath = f'finalVideos/{currentWord.capitalize()}.mp4'
+        concatVideos(videosToMerge, outputPath)
