@@ -49,8 +49,8 @@ def download_batch(start_index, end_index):
             print(f"Downloaded video: {file_name}")
 
 # Define batch size
-batch_size = 10
 
+batch_size = 100
 # Calculate the number of batches
 num_batches = (len(data) + batch_size - 1) // batch_size
 
@@ -178,7 +178,6 @@ def makeImagesInBatch(start_index, end_index):
         #         break
         # break
 
-batch_size = 10
 num_batches = (len(allWordsData) + batch_size - 1) // batch_size
 
 try:
@@ -228,7 +227,6 @@ def addVideoToImage(start_index, end_index):
         #     break
         # break
 
-batch_size = 10
 num_batches = (len(allWordsData) + batch_size - 1) // batch_size
 
 try:
