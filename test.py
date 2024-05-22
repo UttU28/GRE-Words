@@ -53,8 +53,11 @@ if __name__ == "__main__":
     except:
         print("IDK")
 
-    ratioButton = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "._acan._acao._acas._aj1-._ap30")))
-    ratioButton.click()
+    # ratioButton = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "._acan._acao._acas._aj1-._ap30")))
+    ratioButton = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(@class, '_acan') and contains(@class, '_acao') and contains(@class, '_acas') and contains(@class, '_aj1-') and contains(@class, '_ap30')]")))
+    sleep(5)
+    driver.find_element(By.CSS_SELECTOR,"._acan._acao._acas._aj1-._ap30").click()
+    # ratioButton.click()
 
     selectRatio = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//span[text()='9:16']")))
     selectRatio.click()
