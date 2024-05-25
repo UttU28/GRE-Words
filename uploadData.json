@@ -1,13 +1,13 @@
 {
     "addedVideos": [
         "reelsCode/finalVideos/Fracas.mp4",
-        "reelsCode/finalVideos/Ethos.mp4"
-    ],
-    "unaddedVideos": [
+        "reelsCode/finalVideos/Ethos.mp4",
         "reelsCode/finalVideos/Florid.mp4",
         "reelsCode/finalVideos/Laudable.mp4",
         "reelsCode/finalVideos/Plummet.mp4",
-        "reelsCode/finalVideos/Rarefied.mp4",
+        "reelsCode/finalVideos/Rarefied.mp4"
+    ],
+    "unaddedVideos": [
         "reelsCode/finalVideos/Tawdry.mp4",
         "reelsCode/finalVideos/Juncture.mp4",
         "reelsCode/finalVideos/Arduous.mp4",

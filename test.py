@@ -47,16 +47,21 @@ if __name__ == "__main__":
     os.system(f"xdotool type '/home/midhdesk0/Desktop/GRE-Words/{firstVideo}' && xdotool key Return")
 
     try:
-        sleep(2)
         selectButton = WebDriverWait(driver, 3).until(EC.element_to_be_clickable((By.XPATH, "//button[text()='OK']")))
         selectButton.click()
     except:
         print("IDK")
 
     # ratioButton = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "._acan._acao._acas._aj1-._ap30")))
-    ratioButton = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(@class, '_acan') and contains(@class, '_acao') and contains(@class, '_acas') and contains(@class, '_aj1-') and contains(@class, '_ap30')]")))
+    # ratioButton = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(@class, '_acan') and contains(@class, '_acao') and contains(@class, '_acas') and contains(@class, '_aj1-') and contains(@class, '_ap30')]")))
     sleep(5)
-    driver.find_element(By.CSS_SELECTOR,"._acan._acao._acas._aj1-._ap30").click()
+
+    try:
+        element = driver.find_element(By.CSS_SELECTOR, "._abfz._abg1")
+        print("Element found.")
+        element.click()
+    except NoSuchElementException:
+        print("Element not found.")
     # ratioButton.click()
 
     selectRatio = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//span[text()='9:16']")))
@@ -86,4 +91,4 @@ if __name__ == "__main__":
     # Write the updated JSON data back to the file
     with open('uploadData.json', 'w') as file:
         json.dump(data, file, indent=4)
-# driver.quit()
+    driver.quit()
