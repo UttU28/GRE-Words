@@ -26,6 +26,7 @@ options.add_argument("--disable-notifications")
 driver = webdriver.Chrome(options=options)
 
 driver.get("https://www.instagram.com/")
+thisCaption = """"""
 
 if __name__ == "__main__":
     currentPage = 0
@@ -75,7 +76,7 @@ if __name__ == "__main__":
 
     currentWord = firstVideo.split("/")[-1].replace(".mp4","")
     print(currentWord)
-    thisCaption = f"Current Word: {currentWord} \nFollow to learn New English Words everyday.\n\n#vocab #grevocabulary #grewords #grevocab #ielts #vocab #learning #english #word #wordofgod #wordgasm #wordoftheday #wordofday #meme"
+    # thisCaption = f"Current Word: {currentWord} \nFollow to learn New English Words everyday.\n\n#vocab #grevocabulary #grewords #grevocab #ielts #vocab #learning #english #word #wordofgod #wordgasm #wordoftheday #wordofday #meme"
     print(thisCaption)
 
     ratioButton = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".xw2csxc.x1odjw0f.x1n2onr6.x1hnll1o.xpqswwc.xl565be.x5dp1im.xdj266r.x11i5rnm.xat24cr.x1mh8g0r.x1w2wdq1.xen30ot.x1swvt13.x1pi30zi.xh8yej3.x5n08af.notranslate")))
