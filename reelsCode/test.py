@@ -37,3 +37,4 @@ for currentWord, wordData in allWordsData.items():
         print(f"Merging videos for {currentWord.upper()}")
         outputPath = f'finalVideos/{currentWord.capitalize()}.mp4'
         concatVideos(videosToMerge, outputPath)
+
