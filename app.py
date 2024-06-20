@@ -2,12 +2,18 @@ import subprocess
 from time import sleep
 import time
 from selenium import webdriver
+from selenium.webdriver import ActionChains
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException
 import json, os
+import pyperclip
+
+def removeBMP(text):
+    return ''.join(char for char in text if ord(char) <= 0xFFFF)
 
 # Read the JSON file
 with open('uploadData.json') as f:
@@ -86,11 +92,12 @@ if __name__ == "__main__":
 
     currentWord = firstVideo.split("/")[-1].replace(".mp4","")
     print(currentWord)
-    # thisCaption = f"Current Word: {currentWord} \nFollow to learn New English Words everyday.\n\n#vocab #grevocabulary #grewords #grevocab #ielts #vocab #learning #english #word #wordofgod #wordgasm #wordoftheday #wordofday #meme"
+    thisCaption += f"\n\nCurrent Word: {currentWord} \nFollow to learn New English Words everyday.\n\n#vocab #grevocabulary #grewords #grevocab #ielts #vocab #learning #english #word #wordofgod #wordgasm #wordoftheday #wordofday #meme"
     print(thisCaption)
 
-    ratioButton = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".xw2csxc.x1odjw0f.x1n2onr6.x1hnll1o.xpqswwc.xl565be.x5dp1im.xdj266r.x11i5rnm.xat24cr.x1mh8g0r.x1w2wdq1.xen30ot.x1swvt13.x1pi30zi.xh8yej3.x5n08af.notranslate")))
-    ratioButton.send_keys(thisCaption)
+    captionText = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".xw2csxc.x1odjw0f.x1n2onr6.x1hnll1o.xpqswwc.xl565be.x5dp1im.xdj266r.x11i5rnm.xat24cr.x1mh8g0r.x1w2wdq1.xen30ot.x1swvt13.x1pi30zi.xh8yej3.x5n08af.notranslate")))
+    captionText.click()
+    captionText.send_keys(removeBMP(thisCaption))
 
     nextButton = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//div[text()='Share']")))
     nextButton.click()
