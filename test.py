@@ -1,20 +1,84 @@
-thisCaption = """No problem! Here's the information about the Mercedes CLR GTR:
+import PyPDF2
+import re
+import json
+import random
 
-The Mercedes CLR GTR is a remarkable racing car celebrated for its outstanding performance and sleek design. Powered by a potent 6.0-liter V12 engine, it delivers over 600 horsepower.
+def extractPdfContent(pdfPath):
+    text = ""
+    try:
+        with open(pdfPath, 'rb') as pdfFile:
+            reader = PyPDF2.PdfReader(pdfFile)
+            for page in reader.pages:
+                text += page.extract_text() + "\n"
+    except Exception as e:
+        print(f"An error occurred while reading the PDF: {e}")
+    return text
 
-Acceleration from 0 to 100 km/h takes approximately 3.7 seconds, with a remarkable top speed surprising 320 km/h.🥇
+def parseTextToWordMeaning(text):
+    wordEntries = {}
+    lines = text.split("\n")
+    currentWord = None
+    currentDefinition = []
+    allWords = []
 
-Incorporating adventure aerodynamic features and cutting-edge stability technologies, the CLR GTR ensures exceptional stability and control, particularly during high-speed maneuvers. 💨
+    for line in lines:
+        line = line.strip()
+        if not line:
+            continue
 
-Originally priced at around $1.5 million, the Mercedes CLR GTR is considered one of the most exclusive and prestigious racing cars ever produced. 💰
+        match = re.match(r"^(\d+)\.", line)
+        if match:
+            if currentWord and currentDefinition:
+                allWords.append((currentWord, " ".join(currentDefinition).strip()))
+            currentWord = None
+            currentDefinition = []
+        elif currentWord is None:
+            currentWord = line
+        else:
+            currentDefinition.append(line)
 
-Its limited production run of just five units adds to its rarity, making it highly sought after by racing enthusiasts and collectors worldwide. 🌎"""
+    if currentWord and currentDefinition:
+        allWords.append((currentWord, " ".join(currentDefinition).strip()))
 
+    totalWords = len(allWords)
+    randomIndices = [f"{i:04d}" for i in range(totalWords)]  # Generate 4-digit indices
+    random.shuffle(randomIndices)  # Shuffle the indices
 
-def remove_unsupported_bmp_emojis(text):
-    return ''.join(char for char in text if ord(char) <= 0xFFFF)
+    for index, (word, meaning) in enumerate(allWords):
+        wordEntries[randomIndices[index]] = {
+            "word": word,
+            "meaning": meaning,
+            "wordUsed": False,
+            "clipsFound": 0,
+            "clipData": {},
+            "searched": False
+        }
 
-# Example usage:
-text_with_emojis = "Hello 😀🎉 This is a test 🚀"
-cleaned_text = remove_unsupported_bmp_emojis(thisCaption)
-print(cleaned_text)
+    return wordEntries
+
+def saveToJson(data, outputPath):
+    try:
+        # Sort data by the key (4-digit number string)
+        sortedData = {k: data[k] for k in sorted(data.keys())}
+        
+        with open(outputPath, 'w') as jsonFile:
+            json.dump(sortedData, jsonFile, indent=4)
+        print(f"Data successfully saved to {outputPath}")
+    except Exception as e:
+        print(f"An error occurred while saving to JSON: {e}")
+
+def main():
+    pdfPath = 'wordList.pdf'
+    outputJsonPath = 'wordList.json'
+
+    print("Extracting text from all pages of the PDF...")
+    extractedText = extractPdfContent(pdfPath)
+
+    print("Parsing text into words and meanings...")
+    parsedData = parseTextToWordMeaning(extractedText)
+
+    print("Saving parsed data to a JSON file...")
+    saveToJson(parsedData, outputJsonPath)
+
+if __name__ == "__main__":
+    main()
