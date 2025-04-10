@@ -1,0 +1,7 @@
+selenium==4.11.2
+requests==2.31.0
+webdriver-manager==4.0.1
+Pillow==10.0.0
+python-dotenv==1.0.0
+tqdm==4.66.1
+colorama==0.4.6
