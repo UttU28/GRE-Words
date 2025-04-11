@@ -3,6 +3,7 @@ import time
 import subprocess
 import os
 import json
+import sys
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
@@ -11,7 +12,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
-from config import JSON_FILE, CHROME_DATA_DIR, DEBUGGING_PORT, path_str, ensure_dirs_exist
+from config import JSON_FILE, CHROME_DATA_DIR, DEBUGGING_PORT, CHROME_PATH as CONFIG_CHROME_PATH, path_str, ensure_dirs_exist
 
 # Ensure necessary directories exist
 ensure_dirs_exist()
@@ -19,13 +20,35 @@ ensure_dirs_exist()
 # Configuration - use values from config
 USER_DATA_DIR = path_str(CHROME_DATA_DIR)
 
-# Determine Chrome path based on OS
-if os.name == "nt":  # Windows
-    CHROME_PATH = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+# Use Chrome path from config if available
+if CONFIG_CHROME_PATH:
+    CHROME_PATH = CONFIG_CHROME_PATH
     if not os.path.exists(CHROME_PATH):
-        CHROME_PATH = "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"
-else:  # Linux/Mac
-    CHROME_PATH = "/usr/bin/google-chrome"
+        print(f"Warning: Configured Chrome path {CHROME_PATH} does not exist")
+else:
+    # Determine Chrome path based on OS
+    if os.name == "nt":  # Windows
+        CHROME_PATH = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+        if not os.path.exists(CHROME_PATH):
+            CHROME_PATH = "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"
+    else:  # Linux/Mac
+        # Check common Ubuntu locations
+        CHROME_PATH = "/usr/bin/google-chrome"
+        if not os.path.exists(CHROME_PATH):
+            CHROME_PATH = "/usr/bin/google-chrome-stable"
+        if not os.path.exists(CHROME_PATH):
+            CHROME_PATH = "/snap/bin/chromium"
+        if not os.path.exists(CHROME_PATH):
+            # Try to find Chrome using which command
+            try:
+                CHROME_PATH = subprocess.check_output(["which", "google-chrome"], text=True).strip()
+            except subprocess.CalledProcessError:
+                try:
+                    CHROME_PATH = subprocess.check_output(["which", "chrome"], text=True).strip()
+                except subprocess.CalledProcessError:
+                    print("Chrome executable not found. Please install Chrome or specify its path.")
+                    print("You can set the CHROME_PATH in the .env file.")
+                    sys.exit(1)
 
 print(f"Chrome executable path: {CHROME_PATH}")
 

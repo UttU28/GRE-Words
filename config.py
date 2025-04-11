@@ -20,7 +20,7 @@ RESOURCES_DIR = Path(get_env_var('RESOURCES_DIR', os.path.join(BASE_DIR, 'resour
 FONTS_DIR = Path(get_env_var('FONTS_DIR', os.path.join(RESOURCES_DIR, 'fonts'))).resolve()
 
 # Data directory paths
-JSON_FILE = Path(get_env_var('JSON_FILE', os.path.join(RESOURCES_DIR, 'bkpgreWords.json'))).resolve()
+JSON_FILE = Path(get_env_var('JSON_FILE', os.path.join(RESOURCES_DIR, 'greWords.json'))).resolve()
 CHROME_DATA_DIR = Path(get_env_var('CHROME_DATA_DIR', os.path.join(BASE_DIR, 'chromeData'))).resolve()
 
 # Media directory paths
@@ -46,6 +46,7 @@ PDF_FILE = Path(get_env_var('PDF_FILE', os.path.join(RESOURCES_DIR, 'wordList.pd
 
 # Chrome Configuration
 DEBUGGING_PORT = get_env_var('DEBUGGING_PORT', '9004')
+CHROME_PATH = get_env_var('CHROME_PATH', None)
 
 # Ensure directories exist
 def ensure_dirs_exist():
