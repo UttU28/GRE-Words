@@ -124,7 +124,7 @@ def process_word(driver, word):
         # Create ActionChains for keyboard control
         actions = ActionChains(driver)
         
-        # Get up to 7 clips
+        # Get up to 10 clips
         for pos in range(10):
             print(f"Processing clip position {pos}")
             
@@ -165,8 +165,12 @@ def process_word(driver, word):
                 
                 print(f"  Successfully saved clip {currentIndex}")
                 
+                # Save data after each clip to ensure it's not lost if script quits unexpectedly
+                with open(path_str(JSON_FILE), "w") as file:
+                    json.dump(data, file, indent=2)
+                
                 # Press the down arrow to move to the next clip (if not the last one)
-                if pos < 10:
+                if pos < 9:  # We only need to move to the next clip if we're not at the last position (9 = 10th clip)
                     # First click somewhere on the page to ensure focus
                     element.click()
                     sleep(0.5)
@@ -178,6 +182,19 @@ def process_word(driver, word):
                     new_url = driver.current_url
                     if current_url == new_url:
                         print("  No more clips available (position didn't change)")
+                        break
+                    
+                    # Additional check - try to verify a new video has loaded
+                    try:
+                        new_video = WebDriverWait(driver, 5).until(
+                            EC.presence_of_element_located((By.TAG_NAME, "video"))
+                        )
+                        new_url = new_video.get_attribute("src")
+                        if new_url == videoURL:
+                            print("  No new video loaded, likely at the end of available clips")
+                            break
+                    except Exception as e:
+                        print(f"  Could not verify new video loaded: {e}")
                         break
                 
             except Exception as e:
