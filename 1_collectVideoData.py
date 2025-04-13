@@ -166,7 +166,7 @@ def process_word(driver, word):
                 print(f"  Successfully saved clip {currentIndex}")
                 
                 # Press the down arrow to move to the next clip (if not the last one)
-                if pos < 6:
+                if pos < 10:
                     # First click somewhere on the page to ensure focus
                     element.click()
                     sleep(0.5)
