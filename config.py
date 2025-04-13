@@ -18,16 +18,17 @@ def get_env_var(var_name, default=None, required=False):
 BASE_DIR = Path(get_env_var('BASE_DIR', os.path.dirname(os.path.abspath(__file__)))).resolve()
 RESOURCES_DIR = Path(get_env_var('RESOURCES_DIR', os.path.join(BASE_DIR, 'resources'))).resolve()
 FONTS_DIR = Path(get_env_var('FONTS_DIR', os.path.join(RESOURCES_DIR, 'fonts'))).resolve()
+DATA_DIR = Path(get_env_var('DATA_DIR', os.path.join(BASE_DIR, 'data'))).resolve()
 
 # Data directory paths
 JSON_FILE = Path(get_env_var('JSON_FILE', os.path.join(RESOURCES_DIR, 'greWords.json'))).resolve()
 CHROME_DATA_DIR = Path(get_env_var('CHROME_DATA_DIR', os.path.join(BASE_DIR, 'chromeData'))).resolve()
 
 # Media directory paths
-IMAGES_DIR = Path(get_env_var('IMAGES_DIR', os.path.join(BASE_DIR, 'images'))).resolve()
-DOWNLOADED_VIDEOS_DIR = Path(get_env_var('DOWNLOADED_VIDEOS_DIR', os.path.join(BASE_DIR, 'downloadedVideos'))).resolve()
-MERGED_VIDEOS_DIR = Path(get_env_var('MERGED_VIDEOS_DIR', os.path.join(BASE_DIR, 'mergedVideos'))).resolve()
-FINAL_VIDEOS_DIR = Path(get_env_var('FINAL_VIDEOS_DIR', os.path.join(BASE_DIR, 'finalVideos'))).resolve()
+IMAGES_DIR = Path(get_env_var('IMAGES_DIR', os.path.join(DATA_DIR, 'images'))).resolve()
+DOWNLOADED_VIDEOS_DIR = Path(get_env_var('DOWNLOADED_VIDEOS_DIR', os.path.join(DATA_DIR, 'downloadedVideos'))).resolve()
+MERGED_VIDEOS_DIR = Path(get_env_var('MERGED_VIDEOS_DIR', os.path.join(DATA_DIR, 'mergedVideos'))).resolve()
+FINAL_VIDEOS_DIR = Path(get_env_var('FINAL_VIDEOS_DIR', os.path.join(DATA_DIR, 'finalVideos'))).resolve()
 
 # Resource files
 BACKGROUND_IMAGE = Path(get_env_var('BACKGROUND_IMAGE', os.path.join(RESOURCES_DIR, 'woKyaBolRahi.png'))).resolve()
@@ -48,15 +49,32 @@ PDF_FILE = Path(get_env_var('PDF_FILE', os.path.join(RESOURCES_DIR, 'wordList.pd
 DEBUGGING_PORT = get_env_var('DEBUGGING_PORT', '9004')
 CHROME_PATH = get_env_var('CHROME_PATH', None)
 
-# Ensure directories exist
-def ensure_dirs_exist():
+# List of all directories that need to be created
+ALL_DIRECTORIES = [
+    RESOURCES_DIR,
+    FONTS_DIR,
+    DATA_DIR,
+    IMAGES_DIR,
+    DOWNLOADED_VIDEOS_DIR,
+    MERGED_VIDEOS_DIR,
+    FINAL_VIDEOS_DIR
+]
+
+# Function to ensure directories exist
+def ensure_dirs_exist(quiet=False):
     """Create all necessary directories if they don't exist"""
-    for directory in [RESOURCES_DIR, FONTS_DIR, IMAGES_DIR, 
-                      DOWNLOADED_VIDEOS_DIR, MERGED_VIDEOS_DIR, FINAL_VIDEOS_DIR]:
+    for directory in ALL_DIRECTORIES:
         os.makedirs(directory, exist_ok=True)
-        print(f"Ensured directory exists: {directory}")
+        if not quiet:
+            print(f"Ensured directory exists: {directory}")
+    
+    if not quiet:
+        print("\nDirectory structure ready!")
 
 # Convert pathlib Paths to strings where needed
 def path_str(path):
     """Convert Path object to string for compatibility"""
-    return str(path) 
+    return str(path)
+
+# Auto-create directories when config is imported
+ensure_dirs_exist(quiet=True) 

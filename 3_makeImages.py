@@ -1,6 +1,7 @@
 import os
 import json
 import re
+import sys
 from PIL import Image, ImageFont, ImageDraw
 import textwrap
 from config import (
@@ -19,8 +20,7 @@ with open(path_str(JSON_FILE), "r") as allWords:
 # Check if background image exists
 if not os.path.exists(path_str(BACKGROUND_IMAGE)):
     print(f"Error: Background image not found at {path_str(BACKGROUND_IMAGE)}")
-    print(f"Please place the woKyaBolRahi.png image in the {path_str(RESOURCES_DIR)} directory.")
-    exit(1)
+    sys.exit(1)
 
 # Font setup with fallbacks
 def load_font(font_name, size):
@@ -51,7 +51,7 @@ try:
 except Exception as e:
     print(f"Error loading fonts: {e}")
     print(f"Please make sure the required fonts are in the {path_str(FONTS_DIR)} directory.")
-    exit(1)
+    sys.exit(1)
 
 def hex2rgb(rgbColor):
     return tuple(int(rgbColor[i:i+2], 16) for i in (1, 3, 5))
@@ -81,7 +81,59 @@ def imageTextGenerator(draw, text, currentSubtitleFont, paddingTop):
     y = paddingTop
     return finalMultilineText, finalTitleFont, x, y
 
-def generateImage(currentWord, currentDef, currentSubtitle, currentMovie, index):
+def draw_text_with_highlights(draw, text, font, base_color, highlight_color, highlight_word, position, align="center"):
+    pattern = re.compile(r'\b' + re.escape(highlight_word.upper()) + r'\b')
+    
+    if pattern.search(text) is None:
+        draw.multiline_text(position, text, fill=base_color, font=font, align=align, anchor="ma")
+        return
+    
+    y_position = position[1]
+    for line in text.split('\n'):
+        line_width = draw.textlength(line, font=font)
+        
+        if align == "center":
+            x_position = position[0] - line_width/2
+        elif align == "left":
+            x_position = position[0]
+        else:
+            x_position = position[0] - line_width
+        
+        parts = pattern.split(line)
+        for i, part in enumerate(parts):
+            if part:
+                draw.text((x_position, y_position), part, fill=base_color, font=font)
+                x_position += draw.textlength(part, font=font)
+            
+            if i < len(parts) - 1:
+                highlight_text = highlight_word.upper()
+                
+                bold_offsets = [
+                    (-1, -1), (-1, 0), (-1, 1),
+                    (0, -1),           (0, 1),
+                    (1, -1),  (1, 0),  (1, 1)
+                ]
+                
+                for offset_x, offset_y in bold_offsets:
+                    draw.text(
+                        (x_position + offset_x, y_position + offset_y), 
+                        highlight_text, 
+                        fill=highlight_color, 
+                        font=font
+                    )
+                
+                draw.text(
+                    (x_position, y_position), 
+                    highlight_text, 
+                    fill=highlight_color, 
+                    font=font
+                )
+                
+                x_position += draw.textlength(highlight_text, font=font)
+        
+        y_position += font.getmask("A").getbbox()[3] * 1.5
+
+def generateImage(currentWord, currentDef, currentSubtitle, currentMovie, index, fonts):
     try:
         original_image = Image.open(path_str(BACKGROUND_IMAGE))
         img = original_image.copy()
@@ -93,7 +145,7 @@ def generateImage(currentWord, currentDef, currentSubtitle, currentMovie, index)
         shadow_offset = 3  # Shadow offset
         
         # Increase font size by loading a larger version of the font
-        larger_word_font = load_font(WORD_FONT, 100)  # Increased from 75 to 100
+        larger_word_font = fonts["word_large"]  # Increased from 75 to 100
         
         # Calculate position for true center, but at specified y-position
         word_text = currentWord.upper()
@@ -144,12 +196,12 @@ def generateImage(currentWord, currentDef, currentSubtitle, currentMovie, index)
         
         definition_text = currentDef
         
-        wrapped_text = getWrappedText(definition_text, meaningFont, img.width - 100)  # Narrower width for better looking paragraphs
+        wrapped_text = getWrappedText(definition_text, fonts["meaning"], img.width - 100)  # Narrower width for better looking paragraphs
         
         draw.multiline_text(
             xy=(definition_position_x, definition_position_y), 
             text=wrapped_text, 
-            font=meaningFont, 
+            font=fonts["meaning"], 
             align="center",  # Center-align the text
             fill=definition_color, 
             anchor="ma"  # Top-center anchoring
@@ -159,7 +211,7 @@ def generateImage(currentWord, currentDef, currentSubtitle, currentMovie, index)
         _, _, _, definition_height = draw.multiline_textbbox(
             (definition_position_x, definition_position_y), 
             wrapped_text, 
-            font=meaningFont, 
+            font=fonts["meaning"], 
             align="center", 
             anchor="ma"
         )
@@ -182,13 +234,13 @@ def generateImage(currentWord, currentDef, currentSubtitle, currentMovie, index)
         movie_position_x = 50  # Left margin instead of center
         
         # Wrap movie text if it's too long
-        movie_wrapped_text = getWrappedText(currentMovie, movieFont, img.width - 100)
+        movie_wrapped_text = getWrappedText(currentMovie, fonts["movie"], img.width - 100)
         
         # Draw movie info left-aligned
         draw.multiline_text(
             xy=(movie_position_x, movie_info_position), 
             text=movie_wrapped_text,
-            font=movieFont, 
+            font=fonts["movie"], 
             align="left",  # Left align instead of center
             fill=movie_color
         )
@@ -197,7 +249,7 @@ def generateImage(currentWord, currentDef, currentSubtitle, currentMovie, index)
         _, _, _, movie_text_height = draw.multiline_textbbox(
             (movie_position_x, movie_info_position), 
             movie_wrapped_text, 
-            font=movieFont, 
+            font=fonts["movie"], 
             align="left"  # Match the alignment used above
         )
         
@@ -227,82 +279,13 @@ def generateImage(currentWord, currentDef, currentSubtitle, currentMovie, index)
         subtitle_text = highlight_word_in_text(subtitle_text, highlight_word)
         
         # Wrap subtitle if needed
-        subtitle_wrapped_text = getWrappedText(subtitle_text, movieFont, img.width - 150)
-        
-        # Split the subtitle into parts to highlight the target word with a different color
-        # This approach allows for mixed colors in the same text
-        import re
-        
-        # Define a function to draw text with highlighted words
-        def draw_text_with_highlights(draw, text, font, base_color, highlight_color, highlight_word, position, align="center"):
-            # Find all instances of the highlighted word (case insensitive)
-            pattern = re.compile(r'\b' + re.escape(highlight_word.upper()) + r'\b')
-            
-            # If there are no matches, just draw the text normally
-            if pattern.search(text) is None:
-                draw.multiline_text(position, text, fill=base_color, font=font, align=align, anchor="ma")
-                return
-            
-            # For each line in the text
-            y_position = position[1]
-            for line in text.split('\n'):
-                # Calculate the total width for centering
-                line_width = draw.textlength(line, font=font)
-                
-                # Starting x position - adjust based on alignment
-                if align == "center":
-                    x_position = position[0] - line_width/2
-                elif align == "left":
-                    x_position = position[0]
-                else:  # right
-                    x_position = position[0] - line_width
-                
-                # Split the line by the highlighted word
-                parts = pattern.split(line)
-                for i, part in enumerate(parts):
-                    # Draw the regular part
-                    if part:
-                        draw.text((x_position, y_position), part, fill=base_color, font=font)
-                        x_position += draw.textlength(part, font=font)
-                    
-                    # Draw the highlighted word (except after the last part)
-                    if i < len(parts) - 1:
-                        highlight_text = highlight_word.upper()
-                        
-                        # Create bold effect by drawing the text multiple times with tiny offsets
-                        bold_offsets = [
-                            (-1, -1), (-1, 0), (-1, 1),
-                            (0, -1),           (0, 1),
-                            (1, -1),  (1, 0),  (1, 1)
-                        ]
-                        
-                        # Draw with small offsets first to create bold effect
-                        for offset_x, offset_y in bold_offsets:
-                            draw.text(
-                                (x_position + offset_x, y_position + offset_y), 
-                                highlight_text, 
-                                fill=highlight_color, 
-                                font=font
-                            )
-                        
-                        # Draw the main text on top for a cleaner look
-                        draw.text(
-                            (x_position, y_position), 
-                            highlight_text, 
-                            fill=highlight_color, 
-                            font=font
-                        )
-                        
-                        x_position += draw.textlength(highlight_text, font=font)
-                
-                # Move to the next line
-                y_position += font.getmask("A").getbbox()[3] * 1.5  # Increased from 1.2 to 1.5 for more vertical spacing
+        subtitle_wrapped_text = getWrappedText(subtitle_text, fonts["movie"], img.width - 150)
         
         # Use our custom function to draw the subtitle with highlighted words
         draw_text_with_highlights(
             draw, 
             subtitle_wrapped_text, 
-            movieFont, 
+            fonts["movie"], 
             subtitle_color,  # Base color
             highlight_color,  # Color for the target word
             highlight_word,  # The word to highlight
@@ -317,7 +300,7 @@ def generateImage(currentWord, currentDef, currentSubtitle, currentMovie, index)
         signature_color = "#5b4332"  # Walnut Brown
         # Main signature text "Wo-Kya-bol-Rahi"
         signature_text = "Wo-Kya-bol-Rahi"
-        signature_font = load_font(MOVIE_FONT, 60)  # Using movie font but smaller size
+        signature_font = fonts["signature"]  # Using movie font but smaller size
         
         # Draw the main signature text centered horizontally
         draw.text(
@@ -330,7 +313,7 @@ def generateImage(currentWord, currentDef, currentSubtitle, currentMovie, index)
         
         # Add "vocabulary" text below the signature
         vocabulary_text = "vocabulary"
-        vocabulary_font = load_font(MOVIE_FONT, 40)  # Even smaller for the subtitle
+        vocabulary_font = fonts["vocab"]  # Even smaller for the subtitle
         # Vocabulary text - use Dusty Taupe
         vocabulary_color = "#8e7f71"  # Dusty Taupe
         
@@ -377,64 +360,60 @@ def upperText(inputString, thisWord):
     pattern = re.compile(r'\b' + re.escape(thisWord) + r'\b', re.IGNORECASE)
     return pattern.sub(thisWord.upper(), inputString)
 
-def makeImagesInBatch(start_index, end_index):
-    for currentWord, wordData in list(allWordsData.items())[start_index:end_index]:
-        if not wordData["wordUsed"]:
-            currentDef = wordData['meaning']
-            print(f"Processing word: {currentWord}")
-            
-            # Check if clipData exists
-            if "clipData" not in wordData or not wordData["clipData"]:
-                print(f"No clip data found for {currentWord}, skipping")
-                continue
-                
-            # Process all clips for this word
-            for index, videoData in wordData["clipData"].items():
-                currentSubtitle = upperText(videoData["subtitle"], currentWord)
-                currentMovie = videoData["videoInfo"]
-                print(f"  Processing clip {index}")
-                videoStartHeight = generateImage(currentWord, currentDef, currentSubtitle, currentMovie, index)
-                updateJsonFile(currentWord, str(index), videoStartHeight)
-            
-            print(f"Completed processing word: {currentWord}")
-            
-            # Update word as used in the JSON
-            try:
-                with open(path_str(JSON_FILE), 'r') as file:
-                    data = json.load(file)
-                
-                if currentWord in data:
-                    data[currentWord]["wordUsed"] = True
-                    print(f"Marked '{currentWord}' as used")
-                
-                with open(path_str(JSON_FILE), 'w') as file:
-                    json.dump(data, file, indent=2)
-            except Exception as e:
-                print(f"Error updating word usage status: {e}")
+def make_images_for_word(target_word):
+    fonts = {
+        "word": wordFont,
+        "word_large": load_font(WORD_FONT, 100),
+        "meaning": meaningFont,
+        "movie": movieFont,
+        "default": defaultFont,
+        "signature": load_font(MOVIE_FONT, 60),
+        "vocab": load_font(MOVIE_FONT, 40)
+    }
     
-    print(f"Batch processing complete for words {start_index+1} to {end_index}")
-
-# Determine batch size and process
-batch_size = 10
-num_batches = (len(allWordsData) + batch_size - 1) // batch_size
-
-print(f"Found {len(allWordsData)} words in JSON file")
-print(f"Processing in batches of {batch_size} words ({num_batches} batches total)")
-
-try:
-    batch_input = input("Enter batch number to process (default 1): ").strip()
-    batch_number = int(batch_input) if batch_input else 1
+    if target_word not in allWordsData:
+        print(f"Word '{target_word}' not found in the database.")
+        return False
     
-    if 1 <= batch_number <= num_batches:
-        start_index = (batch_number - 1) * batch_size
-        end_index = min(batch_number * batch_size, len(allWordsData))
-        print(f"Processing batch {batch_number} (words {start_index+1} to {end_index})")
-        makeImagesInBatch(start_index, end_index)
+    wordData = allWordsData[target_word]
+    currentDef = wordData['meaning']
+    print(f"Processing word: {target_word}")
+    
+    if "clipData" not in wordData or not wordData["clipData"]:
+        print(f"No clip data found for {target_word}")
+        return False
+    
+    clips_processed = 0
+    for index, videoData in wordData["clipData"].items():
+        currentSubtitle = upperText(videoData["subtitle"], target_word)
+        currentMovie = videoData["videoInfo"]
+        videoStartHeight = generateImage(target_word, currentDef, currentSubtitle, currentMovie, index, fonts)
+        updateJsonFile(target_word, str(index), videoStartHeight)
+        clips_processed += 1
+    
+    # Mark word as used
+    try:
+        with open(path_str(JSON_FILE), 'r') as file:
+            data = json.load(file)
+        
+        if target_word in data:
+            data[target_word]["wordUsed"] = True
+        
+        with open(path_str(JSON_FILE), 'w') as file:
+            json.dump(data, file, indent=2)
+    except Exception as e:
+        print(f"Error updating word usage status: {e}")
+    
+    print(f"Generated {clips_processed} images for '{target_word}'")
+    return True
+
+if __name__ == "__main__":
+    if len(sys.argv) > 1:
+        word = sys.argv[1].lower().strip()
+        make_images_for_word(word)
     else:
-        print(f"Invalid batch number. Please enter a number between 1 and {num_batches}.")
-except ValueError:
-    print("Invalid input. Please enter a number.")
-except KeyboardInterrupt:
-    print("\nProcess interrupted by user")
-except Exception as e:
-    print(f"Unexpected error: {e}")
+        word = input("Enter the word to generate images for: ").lower().strip()
+        if word:
+            make_images_for_word(word)
+        else:
+            print("No word provided. Exiting.")
