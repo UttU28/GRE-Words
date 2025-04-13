@@ -4,7 +4,6 @@ import sys
 from collections import defaultdict
 
 def clean_json(input_file=None, output_file=None):
-    # Default to wordsBackup.json in resources directory if no input file specified
     if input_file is None:
         input_file = os.path.join("resources", "greWords.json")
     
@@ -42,7 +41,6 @@ def clean_json(input_file=None, output_file=None):
         for clip_id, clip_info in word_data["clipData"].items():
             remove_clip = False
             
-            # Check for duplicate video URLs
             if "videoURL" in clip_info:
                 video_url = clip_info["videoURL"]
                 if video_url in seen_urls:
@@ -51,7 +49,6 @@ def clean_json(input_file=None, output_file=None):
                 else:
                     seen_urls.add(video_url)
             
-            # Check for short subtitles (less than 4 words)
             if "subtitle" in clip_info:
                 subtitle = clip_info["subtitle"]
                 word_count_in_subtitle = len(subtitle.split())
@@ -63,11 +60,9 @@ def clean_json(input_file=None, output_file=None):
             if remove_clip:
                 clips_to_remove.append(clip_id)
         
-        # Remove marked clips
         for clip_id in clips_to_remove:
             del word_data["clipData"][clip_id]
         
-        # Update clipsFound count if needed
         if clips_to_remove:
             word_data["clipsFound"] = len(word_data["clipData"])
             word_count += 1
@@ -90,6 +85,5 @@ if __name__ == "__main__":
         output_file = sys.argv[2] if len(sys.argv) > 2 else None
         clean_json(input_file, output_file)
     else:
-        # No arguments provided, use default resources/wordsBackup.json
         default_output = os.path.join("resources", "words_cleaned.json")
         clean_json(output_file=default_output)

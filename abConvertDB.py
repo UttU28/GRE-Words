@@ -4,7 +4,6 @@ import os
 import time
 from datetime import datetime
 
-# Path to the JSON file and SQLite database
 JSON_FILE = os.path.join("resources", "words_cleaned.json")
 DB_FILE = os.path.join("resources", "gre_words.db")
 
@@ -13,7 +12,6 @@ def create_database():
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
     
-    # Create words table with video tracking fields
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS words (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -26,7 +24,6 @@ def create_database():
     )
     ''')
     
-    # Create clips table
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS clips (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -41,7 +38,6 @@ def create_database():
     )
     ''')
     
-    # Create indexes
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_word ON words(word)')
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_word_id ON clips(word_id)')
     
@@ -66,9 +62,7 @@ def populate_database(conn, data):
     clips_count = 0
     
     try:
-        # Process each word
         for word, word_data in data.items():
-            # Insert word into words table
             cursor.execute('''
             INSERT INTO words (word, meaning, clips_found)
             VALUES (?, ?, ?)
@@ -81,7 +75,6 @@ def populate_database(conn, data):
             word_id = cursor.lastrowid
             words_count += 1
             
-            # Process clips for this word
             if 'clipData' in word_data and word_data['clipData']:
                 for clip_index, clip_info in word_data['clipData'].items():
                     video_start_height = clip_info.get('videoStartHeight', None)
@@ -100,7 +93,6 @@ def populate_database(conn, data):
                     
                     clips_count += 1
             
-            # Commit after each word to avoid losing all data if an error occurs
             conn.commit()
             
     except Exception as e:
@@ -118,27 +110,21 @@ def main():
     
     print(f"Converting JSON data from {JSON_FILE} to SQLite database {DB_FILE}")
     
-    # Check if JSON file exists
     if not os.path.exists(JSON_FILE):
         print(f"Error: JSON file {JSON_FILE} not found")
         return
     
-    # Create database
     conn = create_database()
     
-    # Load JSON data
     data = load_json_data()
     if data is None:
         conn.close()
         return
     
-    # Populate database
     success = populate_database(conn, data)
     
-    # Close connection
     conn.close()
     
-    # Print results
     end_time = time.time()
     execution_time = end_time - start_time
     

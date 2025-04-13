@@ -412,7 +412,8 @@ if __name__ == "__main__":
         word = sys.argv[1].lower().strip()
         make_images_for_word(word)
     else:
-        word = input("Enter the word to generate images for: ").lower().strip()
+        # word = input("Enter the word to generate images for: ").lower().strip()
+        word = "abate"
         if word:
             make_images_for_word(word)
         else:

@@ -6,6 +6,7 @@ import concurrent.futures
 from config import JSON_FILE, DOWNLOADED_VIDEOS_DIR, path_str, ensure_dirs_exist
 from tqdm import tqdm
 from colorama import init, Fore, Style
+import sys
 
 # Initialize colorama
 init(autoreset=True)
@@ -145,8 +146,13 @@ def download_word_videos(target_word, max_workers=4):
     }
 
 if __name__ == "__main__":
-    word = input("Enter the word to download videos for: ").strip().lower()
-    if word:
+    if len(sys.argv) > 1:
+        word = sys.argv[1].lower().strip()
         download_word_videos(word)
     else:
-        print(error("No word provided. Exiting."))
+        # word = input("Enter the word to download videos for: ").strip().lower()
+        word = "abate"
+        if word:
+            download_word_videos(word)
+        else:
+            print(error("No word provided. Exiting."))

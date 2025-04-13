@@ -93,7 +93,8 @@ if __name__ == "__main__":
         word = sys.argv[1].lower().strip()
         process_word(word)
     else:
-        word = input("Enter the word to process videos for: ").lower().strip()
+        # word = input("Enter the word to process videos for: ").lower().strip()
+        word = "abate"
         if word:
             process_word(word)
         else:

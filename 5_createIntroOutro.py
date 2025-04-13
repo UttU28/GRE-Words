@@ -1,11 +1,11 @@
 import os
 from PIL import Image, ImageDraw, ImageFont
-from config import FONTS_DIR, RESOURCES_DIR, BACKGROUND_IMAGE, path_str, ensure_dirs_exist
+from config import FONTS_DIR, IMAGES_DIR, BACKGROUND_IMAGE, path_str, ensure_dirs_exist
 
 ensure_dirs_exist()
 
-INTRO_IMAGE_PATH = os.path.join(path_str(RESOURCES_DIR), "intro.png")
-OUTRO_IMAGE_PATH = os.path.join(path_str(RESOURCES_DIR), "outro.png")
+INTRO_IMAGE_PATH = os.path.join(path_str(IMAGES_DIR), "intro.png")
+OUTRO_IMAGE_PATH = os.path.join(path_str(IMAGES_DIR), "outro.png")
 
 FONTS = {
     "title": None,
@@ -34,7 +34,7 @@ BOLD_OFFSETS = [
 def loadFont(fontName, size):
     fontPaths = [
         os.path.join(path_str(FONTS_DIR), fontName),
-        os.path.join(path_str(RESOURCES_DIR), fontName),
+        os.path.join(path_str(IMAGES_DIR), fontName),
         fontName
     ]
     
@@ -292,12 +292,9 @@ def createOutroImage():
 if __name__ == "__main__":
     print("Generating intro and outro images for vocabulary videos...")
     loadFonts()
-    
-    # Get word input from user
     # wordInput = input("Enter the vocabulary word: ")
     wordInput = "abate"
     
-    # Create images with the input word
     introPath = createIntroImage(wordInput)
     outroPath = createOutroImage()
     
