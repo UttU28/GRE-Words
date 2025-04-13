@@ -63,10 +63,26 @@ ALL_DIRECTORIES = [
 # Function to ensure directories exist
 def ensure_dirs_exist(quiet=False):
     """Create all necessary directories if they don't exist"""
+    if not quiet:
+        print("\nEnsuring directories exist...")
+        print(f"BASE_DIR: {BASE_DIR}")
+        print(f"DATA_DIR: {DATA_DIR}")
+    
+    # Make sure DATA_DIR is created first, as other dirs depend on it
+    os.makedirs(DATA_DIR, exist_ok=True)
+    
     for directory in ALL_DIRECTORIES:
-        os.makedirs(directory, exist_ok=True)
-        if not quiet:
-            print(f"Ensured directory exists: {directory}")
+        try:
+            path_str_dir = str(directory)
+            os.makedirs(directory, exist_ok=True)
+            if not quiet:
+                print(f"Ensured directory exists: {directory}")
+                if os.path.exists(directory):
+                    print(f"  - Confirmed {directory} exists")
+                else:
+                    print(f"  - WARNING: {directory} still doesn't exist after creation attempt")
+        except Exception as e:
+            print(f"Error creating directory {directory}: {e}")
     
     if not quiet:
         print("\nDirectory structure ready!")

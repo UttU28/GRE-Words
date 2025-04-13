@@ -5,3 +5,5 @@
 **/env/*
 **/venv/*
 **/chromeData/*
+
+__pycache__/*

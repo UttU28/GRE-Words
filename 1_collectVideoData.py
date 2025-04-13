@@ -14,32 +14,26 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
 from config import JSON_FILE, CHROME_DATA_DIR, DEBUGGING_PORT, CHROME_PATH as CONFIG_CHROME_PATH, path_str, ensure_dirs_exist
 
-# Ensure necessary directories exist
 ensure_dirs_exist()
 
-# Configuration - use values from config
 USER_DATA_DIR = path_str(CHROME_DATA_DIR)
 
-# Use Chrome path from config if available
 if CONFIG_CHROME_PATH:
     CHROME_PATH = CONFIG_CHROME_PATH
     if not os.path.exists(CHROME_PATH):
         print(f"Warning: Configured Chrome path {CHROME_PATH} does not exist")
 else:
-    # Determine Chrome path based on OS
-    if os.name == "nt":  # Windows
+    if os.name == "nt":
         CHROME_PATH = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
         if not os.path.exists(CHROME_PATH):
             CHROME_PATH = "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"
-    else:  # Linux/Mac
-        # Check common Ubuntu locations
+    else:
         CHROME_PATH = "/usr/bin/google-chrome"
         if not os.path.exists(CHROME_PATH):
             CHROME_PATH = "/usr/bin/google-chrome-stable"
         if not os.path.exists(CHROME_PATH):
             CHROME_PATH = "/snap/bin/chromium"
         if not os.path.exists(CHROME_PATH):
-            # Try to find Chrome using which command
             try:
                 CHROME_PATH = subprocess.check_output(["which", "google-chrome"], text=True).strip()
             except subprocess.CalledProcessError:
@@ -52,7 +46,6 @@ else:
 
 print(f"Chrome executable path: {CHROME_PATH}")
 
-# Load JSON data from config path
 with open(path_str(JSON_FILE), "r") as file:
     data = json.load(file)
 
@@ -60,7 +53,6 @@ def start_chrome_session():
     """Start Chrome browser and connect to it with Selenium"""
     print("Starting Chrome browser...")
     
-    # Start Chrome process
     chrome_process = subprocess.Popen([
         CHROME_PATH,
         f"--remote-debugging-port={DEBUGGING_PORT}",
@@ -71,14 +63,11 @@ def start_chrome_session():
         "--disable-blink-features=AutomationControlled"
     ])
     
-    # Give browser time to start
-    sleep(2)
+    sleep(1)
     
-    # Set up Chrome options to connect to the running browser
     options = Options()
     options.add_experimental_option("debuggerAddress", f"localhost:{DEBUGGING_PORT}")
     
-    # Create driver - simplified options to avoid errors
     driver = webdriver.Chrome(options=options)
     
     return driver, chrome_process
@@ -88,59 +77,47 @@ def cleanup_chrome(driver, chrome_process):
     print("Cleaning up Chrome session on port", DEBUGGING_PORT)
     
     try:
-        # Close and quit driver
         driver.quit()
     except Exception as e:
         print(f"Error quitting driver: {e}")
     
     try:
-        # Terminate only the specific Chrome process we started
         chrome_process.terminate()
         chrome_process.wait(timeout=5)
     except Exception as e:
         print(f"Error terminating Chrome process: {e}")
-        # Force kill if needed
         try:
             chrome_process.kill()
         except:
             pass
     
-    # Do NOT use taskkill which would kill all Chrome instances
 
 def process_word(driver, word):
     """Process a single word and collect its clips"""
     print(f"Processing word: {word}")
     
     try:
-        # Navigate to the initial search page
         driver.get(f"https://www.playphrase.me/#/search?q={word}")
         
-        # Wait for initial page to load
         WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.ID, "app")) and 
             EC.presence_of_element_located((By.CLASS_NAME, "video-player-container"))
         )
         
-        # Create ActionChains for keyboard control
         actions = ActionChains(driver)
         
-        # Get up to 10 clips
         for pos in range(10):
             print(f"Processing clip position {pos}")
             
             try:
-                # Wait a moment for the video to load
-                sleep(2)
+                sleep(1)
                 
-                # Get current video URL to check if position changes later
                 current_url = driver.current_url
                 
-                # Ensure we have a video container
                 element = WebDriverWait(driver, 10).until(
                     EC.presence_of_element_located((By.CLASS_NAME, "video-player-container"))
                 )
                 
-                # Extract video data
                 videoData = element.find_element(By.TAG_NAME, "video")
                 videoURL = videoData.get_attribute("src")
 
@@ -154,9 +131,8 @@ def process_word(driver, word):
                         videoInfo = info.text.strip()
                         break
 
-                currentIndex = pos + 1  # Use 1-based indexing for the data storage
+                currentIndex = pos + 1
                 
-                # Save the data for this position
                 data[word]["clipData"][str(currentIndex)] = {
                     "videoURL": videoURL, 
                     "subtitle": subtitle, 
@@ -165,26 +141,20 @@ def process_word(driver, word):
                 
                 print(f"  Successfully saved clip {currentIndex}")
                 
-                # Save data after each clip to ensure it's not lost if script quits unexpectedly
                 with open(path_str(JSON_FILE), "w") as file:
                     json.dump(data, file, indent=2)
                 
-                # Press the down arrow to move to the next clip (if not the last one)
-                if pos < 9:  # We only need to move to the next clip if we're not at the last position (9 = 10th clip)
-                    # First click somewhere on the page to ensure focus
+                if pos < 9:
                     element.click()
                     sleep(0.5)
-                    # Then send the down arrow key
                     actions.send_keys(Keys.ARROW_DOWN).perform()
-                    sleep(2)  # Wait for the next clip to load
+                    sleep(1)
                     
-                    # Check if URL/position actually changed
                     new_url = driver.current_url
                     if current_url == new_url:
                         print("  No more clips available (position didn't change)")
                         break
                     
-                    # Additional check - try to verify a new video has loaded
                     try:
                         new_video = WebDriverWait(driver, 5).until(
                             EC.presence_of_element_located((By.TAG_NAME, "video"))
@@ -199,10 +169,8 @@ def process_word(driver, word):
                 
             except Exception as e:
                 print(f"  Error processing clip at position {pos}: {e}")
-                # If we can't process this position, we might be out of clips
                 break
         
-        # Mark as searched and update clip count
         data[word]["searched"] = True
         data[word]["clipsFound"] = len(data[word]["clipData"])
         
@@ -214,16 +182,14 @@ def process_word(driver, word):
         return False
 
 try:
-    # Start a single Chrome session for all words
     driver, chrome_process = start_chrome_session()
     driver.maximize_window()
     
-    # Navigate to Google first
     driver.get("https://www.google.com")
     sleep(1)
     
-    # Process all unsearched words
     words_processed = 0
+    consecutive_no_clips = 0  # Counter for consecutive words with no clips
     
     for currentWord, wordData in data.items():
         if not wordData["searched"]:
@@ -232,18 +198,26 @@ try:
             success = process_word(driver, currentWord)
             words_processed += 1
             
-            # Save data after each word to ensure it's not lost
             with open(path_str(JSON_FILE), "w") as file:
                 json.dump(data, file, indent=2)
             
             print(f"Data saved for '{currentWord}'")
             
-            # Navigate to Google after each word to reset state
+            # Check if we found any clips for this word
+            if len(data[currentWord]["clipData"]) == 0:
+                consecutive_no_clips += 1
+                print(f"Warning: No clips found for {consecutive_no_clips} consecutive words")
+                if consecutive_no_clips >= 5:
+                    print(f"Stopping script: No clips found for {consecutive_no_clips} consecutive words")
+                    break
+            else:
+                # Reset counter if we found clips
+                consecutive_no_clips = 0
+            
             print("Navigating to Google to reset for next word...")
             driver.get("https://www.google.com")
             sleep(2)
             
-            # Removed the break statement to process all words
     
     print(f"Script completed. Processed {words_processed} words.")
 
@@ -251,10 +225,8 @@ except Exception as e:
     print(f"Unhandled error: {e}")
     
 finally:
-    # Save data one last time just to be safe
     with open(path_str(JSON_FILE), "w") as file:
         json.dump(data, file, indent=2)
     
-    # Clean up Chrome only at the end
     cleanup_chrome(driver, chrome_process)
             
