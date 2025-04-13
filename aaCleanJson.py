@@ -30,6 +30,7 @@ def clean_json(input_file=None, output_file=None):
     
     word_count = 0
     duplicate_count = 0
+    short_subtitle_count = 0
     
     for word, word_data in data.items():
         if "clipData" not in word_data:
@@ -39,18 +40,30 @@ def clean_json(input_file=None, output_file=None):
         clips_to_remove = []
         
         for clip_id, clip_info in word_data["clipData"].items():
-            if "videoURL" not in clip_info:
-                continue
-                
-            video_url = clip_info["videoURL"]
+            remove_clip = False
             
-            if video_url in seen_urls:
+            # Check for duplicate video URLs
+            if "videoURL" in clip_info:
+                video_url = clip_info["videoURL"]
+                if video_url in seen_urls:
+                    remove_clip = True
+                    duplicate_count += 1
+                else:
+                    seen_urls.add(video_url)
+            
+            # Check for short subtitles (less than 4 words)
+            if "subtitle" in clip_info:
+                subtitle = clip_info["subtitle"]
+                word_count_in_subtitle = len(subtitle.split())
+                if word_count_in_subtitle < 4:
+                    remove_clip = True
+                    short_subtitle_count += 1
+                    print(f"Removing clip for '{word}' with short subtitle: '{subtitle}' ({word_count_in_subtitle} words)")
+            
+            if remove_clip:
                 clips_to_remove.append(clip_id)
-                duplicate_count += 1
-            else:
-                seen_urls.add(video_url)
         
-        # Remove duplicate clips
+        # Remove marked clips
         for clip_id in clips_to_remove:
             del word_data["clipData"][clip_id]
         
@@ -60,6 +73,7 @@ def clean_json(input_file=None, output_file=None):
             word_count += 1
     
     print(f"Found and removed {duplicate_count} duplicate video URLs across {word_count} words")
+    print(f"Found and removed {short_subtitle_count} clips with fewer than 4 words in subtitle")
     
     try:
         with open(output_file, 'w', encoding='utf-8') as f:
