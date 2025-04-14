@@ -27829,24 +27829,62 @@
     "meaning": "Apathetic, sluggish, not easily excited or made emotional",
     "wordIndex": 693,
     "wordUsed": false,
-    "clipsFound": 0,
-    "clipData": {},
-    "searched": false
+    "clipsFound": 2,
+    "clipData": {
+      "1": {
+        "videoURL": "https://s3.us-west-1.wasabisys.com/video-us.playphrase.me/english-storage/64c1e6f947f26f21ffb508e8/6707646d0ea8974796aee214.mp4",
+        "subtitle": "Corpulence  makes  a  man  reasonable,  pleasant  and  phlegmatic. ",
+        "videoInfo": "Spartacus (1960) [01:17:28]"
+      },
+      "2": {
+        "videoURL": "https://s3.us-west-1.wasabisys.com/video-us.playphrase.me/english-storage/64c1d9dd47f26f21ffb5007b/6703355054bbaa6fe0a270e0.mp4",
+        "subtitle": "Sycophantic,  phlegmatic  and  pusillanimous. ",
+        "videoInfo": "Look Back in Anger (1959)"
+      }
+    },
+    "searched": true
   },
   "phony": {
     "meaning": "Fake, counterfeit; insincere, not genuine",
     "wordIndex": 694,
     "wordUsed": false,
-    "clipsFound": 0,
-    "clipData": {},
-    "searched": false
+    "clipsFound": 4,
+    "clipData": {
+      "1": {
+        "videoURL": "https://s3.us-west-1.wasabisys.com/video-us.playphrase.me/english-storage/5b183b8d8079eb4cd4a5b318/670d04105b56d878b9d9b834.mp4",
+        "subtitle": "and  your  phony  wedding  presents  allowed  you  to  walk  out  of  the  bank  with  hundreds  of  pounds  of  cash  without  anyone  raising  an  eyebrow. ",
+        "videoInfo": "Flypaper (2011) [01:20:04]"
+      },
+      "2": {
+        "videoURL": "https://s3.us-west-1.wasabisys.com/video-us.playphrase.me/english-storage/5b183ea98079eb4cd4a6113b/670978b33b21f421b1021741.mp4",
+        "subtitle": "We've  got  to  protect  our  phony  baloney  job,  gentlemen. ",
+        "videoInfo": "Blazing Saddles (1974)"
+      },
+      "3": {
+        "videoURL": "https://s3.us-west-1.wasabisys.com/video-us.playphrase.me/english-storage/5b183af98079eb4cd4a5a196/66f4d79000164f676668acbd.mp4",
+        "subtitle": "I  feel  like  I'm  being  a  phony,  and  I  can't  take  it  anymore. ",
+        "videoInfo": "The Muppets Take Manhattan (1984) [00:44:51]"
+      },
+      "4": {
+        "videoURL": "https://s3.us-west-1.wasabisys.com/video-us.playphrase.me/english-storage/5b183b8d8079eb4cd4a5b318/670d04105b56d878b9d9b834.mp4",
+        "subtitle": "Gave  some  phony  number  to  the  police  so  they'd  help  him  abandon  his  dog. ",
+        "videoInfo": "Angel Dog (2011)"
+      }
+    },
+    "searched": true
   },
   "pious": {
     "meaning": "Devout; religiously reverent and dutiful",
     "wordIndex": 695,
     "wordUsed": false,
     "clipsFound": 0,
-    "clipData": {},
+    "clipData": {
+      "1": {
+        "videoURL": "https://s3.us-west-1.wasabisys.com/video-us.playphrase.me/english-storage/64c2018a47f26f21ffb51a14/670bd7579236b6777d431ef6.mp4",
+        "subtitle": "And  your  coming  off  as  a  little  pious. ",
+        "videoInfo": "Easy A (2010) [00:37:36]"
+      }
+    },
     "searched": false
   },
   "pith": {

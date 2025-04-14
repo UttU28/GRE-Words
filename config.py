@@ -18,11 +18,12 @@ def getEnvVar(varName, default=None, required=False):
 BASE_DIR = Path(getEnvVar('BASE_DIR', os.path.dirname(os.path.abspath(__file__)))).resolve()
 RESOURCES_DIR = Path(getEnvVar('RESOURCES_DIR', os.path.join(BASE_DIR, 'resources'))).resolve()
 FONTS_DIR = Path(getEnvVar('FONTS_DIR', os.path.join(RESOURCES_DIR, 'fonts'))).resolve()
-DATA_DIR = Path(getEnvVar('DATA_DIR', os.path.join(BASE_DIR, 'data'))).resolve()
+DATA_DIR = Path(getEnvVar('DATA_DIR', os.path.join(RESOURCES_DIR, 'data'))).resolve()
 
 # Data directory paths
 JSON_FILE = Path(getEnvVar('JSON_FILE', os.path.join(RESOURCES_DIR, 'greWords.json'))).resolve()
-CHROME_DATA_DIR = Path(getEnvVar('CHROME_DATA_DIR', os.path.join(BASE_DIR, 'chromeData'))).resolve()
+SCR_CHROME_DATA_DIR = Path(getEnvVar('SCR_CHROME_DATA_DIR', os.path.join(RESOURCES_DIR, 'chromeData', 'scrapingChromeData'))).resolve()
+INS_CHROME_DATA_DIR = Path(getEnvVar('INS_CHROME_DATA_DIR', os.path.join(RESOURCES_DIR, 'chromeData', 'instagramChromeData'))).resolve()
 
 # Media directory paths
 IMAGES_DIR = Path(getEnvVar('IMAGES_DIR', os.path.join(DATA_DIR, 'images'))).resolve()
@@ -57,7 +58,8 @@ ALL_DIRECTORIES = [
     IMAGES_DIR,
     DOWNLOADED_VIDEOS_DIR,
     MERGED_VIDEOS_DIR,
-    FINAL_VIDEOS_DIR
+    FINAL_VIDEOS_DIR,
+    os.path.join(RESOURCES_DIR, 'chromeData')
 ]
 
 # Function to ensure directories exist

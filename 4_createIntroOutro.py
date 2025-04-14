@@ -375,7 +375,7 @@ def createIntroOutroVideos(word):
         {"name": "Loading fonts", "func": loadFonts},
         {"name": "Creating intro image", "func": lambda: createIntroImage(word)},
         {"name": "Creating outro image", "func": createOutroImage},
-        {"name": "Creating intro video", "func": lambda: createVideoFromImage(INTRO_IMAGE_PATH, INTRO_VIDEO_PATH, 3, fadeIn=True, fadeOut=False)},
+        {"name": "Creating intro video", "func": lambda: createVideoFromImage(INTRO_IMAGE_PATH, INTRO_VIDEO_PATH, 3, fadeIn=False, fadeOut=False)},
         {"name": "Creating outro video", "func": lambda: createVideoFromImage(OUTRO_IMAGE_PATH, OUTRO_VIDEO_PATH, 5, fadeIn=False, fadeOut=True)}
     ]
     

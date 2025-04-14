@@ -1,22 +1,10 @@
-#!/usr/bin/env python3
-"""
-Chrome Setup Script - Create a profile session for scraping
-
-This script opens a Chrome browser with a specific profile directory,
-allowing users to manually log in to websites and set up extensions.
-The browser session will be saved for later use by scraping scripts.
-
-Usage:
-    python chrome_setup.py [URL]
-"""
-
 import os
 import sys
 import subprocess
 import time
 from config import (
-    CHROME_DATA_DIR, DEBUGGING_PORT, CHROME_PATH as CONFIG_CHROME_PATH, 
-    path_str, ensure_dirs_exist
+    SCR_CHROME_DATA_DIR, INS_CHROME_DATA_DIR, DEBUGGING_PORT, CHROME_PATH as CONFIG_CHROME_PATH, 
+    pathStr, ensureDirsExist
 )
 
 def get_chrome_path():
@@ -57,14 +45,32 @@ def get_chrome_path():
 
 def main():
     # Ensure necessary directories exist
-    ensure_dirs_exist()
+    ensureDirsExist()
     
     # Get Chrome path
     chrome_path = get_chrome_path()
     print(f"Chrome executable path: {chrome_path}")
     
-    # Get user data directory path
-    user_data_dir = path_str(CHROME_DATA_DIR)
+    # Prompt user to select which profile to use
+    print("Select which Chrome profile to use:")
+    print("1. Scraping Profile (SCR)")
+    print("2. Instagram Profile (INS)")
+    
+    while True:
+        profile_choice = input("Enter your choice (1 or 2): ").strip()
+        
+        if profile_choice == "1":
+            user_data_dir = pathStr(SCR_CHROME_DATA_DIR)
+            profile_name = "Scraping"
+            break
+        elif profile_choice == "2":
+            user_data_dir = pathStr(INS_CHROME_DATA_DIR)
+            profile_name = "Instagram"
+            break
+        else:
+            print("Invalid choice. Please enter 1 or 2.")
+    
+    print(f"Using {profile_name} profile.")
     print(f"Chrome user data directory: {user_data_dir}")
     
     # Determine the URL to open
@@ -76,9 +82,12 @@ def main():
     print(f"Opening Chrome to URL: {url}")
     print("=" * 80)
     print("SETUP INSTRUCTIONS:")
-    print("1. The Chrome browser will open with a clean profile")
+    print(f"1. The Chrome browser will open with the {profile_name} profile")
     print("2. Log in to your Google account and any other required websites")
-    print("3. Make sure you're logged in to https://www.playphrase.me/ if needed")
+    if profile_choice == "1":
+        print("3. Make sure you're logged in to https://www.playphrase.me/ if needed")
+    elif profile_choice == "2":
+        print("3. Make sure you're logged in to Instagram and any other required sites")
     print("4. Configure any extensions or settings you want to persist")
     print("5. Keep the browser open as long as needed to complete setup")
     print("6. When done, you can close the browser manually")

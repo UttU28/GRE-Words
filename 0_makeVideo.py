@@ -1,6 +1,5 @@
 import os
 import random
-import sys
 import time
 import shutil
 from colorama import init, Fore, Style
@@ -30,12 +29,14 @@ imagesModule = importFromFile("makeImages", "2_makeImages.py")
 addVideoModule = importFromFile("addVideoToImage", "3_addVideoToImage.py")
 introOutroModule = importFromFile("createIntroOutroVideos", "4_createIntroOutro.py")
 mergeModule = importFromFile("mergeAllOneByOne", "5_mergeAllOneByOne.py")
+uploadModule = importFromFile("uploadVideo", "6_uploadVideo.py")
 
 downloadWordVideos = downloadsModule.downloadWordVideos
 makeImagesForWord = imagesModule.makeImagesForWord
 processWord = addVideoModule.processWord
 createIntroOutroVideos = introOutroModule.createIntroOutroVideos
 mergeWordVideos = mergeModule.mergeWordVideos
+uploadVideo = uploadModule.main
 
 def selectRandomWord():
     """Select a random word from the database that hasn't been processed yet"""
@@ -157,6 +158,18 @@ def processCompleteWord(word=None):
         print(error(f"Failed to create final video for {word}. Aborting."))
         return False
     
+    # Upload the final video to Instagram
+    print(highlight(f"\n--- STEP 6: Uploading video to Instagram for {word.upper()} ---"))
+    caption = "Instagram said \"post daily\" — so here's me being obedient."
+    try:
+        uploadResult = uploadVideo(word, caption)
+        if uploadResult:
+            print(success(f"Successfully uploaded video for {word} to Instagram"))
+        else:
+            print(warning(f"Failed to upload video for {word} to Instagram"))
+    except Exception as e:
+        print(error(f"Error uploading video to Instagram: {e}"))
+    
     # Update database to mark word as processed
     completionTime = time.strftime("%Y-%m-%d %H:%M:%S")
     db.markWordAsProcessed(wordId)
@@ -175,69 +188,9 @@ def processCompleteWord(word=None):
     print(success(f"Total time: {minutes} minutes {seconds} seconds"))
     print(f"{Fore.GREEN}{'='*60}{Style.RESET_ALL}\n")
     
-    print(info(f"File location: {os.path.abspath(__file__)}"))
-    
     return True
-
-def processBatch(count=5, maxFailures=10):
-    """Process a batch of random words"""
-    print(highlight(f"Starting batch processing of up to {count} words"))
-    
-    successful = 0
-    failures = 0
-    
-    while successful < count and failures < maxFailures:
-        print(info(f"\nProcessing word {successful+1} of {count}"))
-        
-        if processCompleteWord():
-            successful += 1
-        else:
-            failures += 1
-            print(warning(f"Failed to process word. Failures: {failures}/{maxFailures}"))
-            
-            if failures >= maxFailures:
-                print(error(f"Reached maximum failure count ({maxFailures}). Stopping batch processing."))
-                break
-                
-            time.sleep(2)
-    
-    print(info(f"\nBatch processing complete."))
-    print(success(f"Successfully processed: {successful} words"))
-    if failures > 0:
-        print(warning(f"Failed to process: {failures} words"))
-    
-    return successful, failures
 
 if __name__ == "__main__":
     ensureDirsExist()
-    
-    if len(sys.argv) > 1:
-        if sys.argv[1].lower() == "batch":
-            batchSize = 5
-            if len(sys.argv) > 2 and sys.argv[2].isdigit():
-                batchSize = int(sys.argv[2])
-            
-            maxFailures = 10
-            if len(sys.argv) > 3 and sys.argv[3].isdigit():
-                maxFailures = int(sys.argv[3])
-                
-            processBatch(batchSize, maxFailures)
-        elif sys.argv[1].isdigit():
-            count = int(sys.argv[1])
-            print(highlight(f"Processing {count} random words"))
-            
-            successful = 0
-            for i in range(count):
-                print(info(f"\nProcessing word {i+1} of {count}"))
-                if processCompleteWord():
-                    successful += 1
-                else:
-                    print(warning("Failed to process word, moving to next one"))
-            
-            print(success(f"\nCompleted processing {successful} out of {count} words successfully"))
-        else:
-            word = sys.argv[1].lower().strip()
-            processCompleteWord(word)
-    else:
-        processCompleteWord()
+    processCompleteWord()
         

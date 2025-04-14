@@ -4,6 +4,15 @@ import subprocess
 import os
 import json
 import sys
+import random
+import re
+import traceback
+from datetime import datetime
+import asyncio
+import threading
+import signal
+import platform
+from multiprocessing import Process, Queue
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
@@ -12,41 +21,46 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
-from config import JSON_FILE, CHROME_DATA_DIR, DEBUGGING_PORT, CHROME_PATH as CONFIG_CHROME_PATH, path_str, ensure_dirs_exist
+from config import JSON_FILE, SCR_CHROME_DATA_DIR, DEBUGGING_PORT, pathStr, ensureDirsExist
 
-ensure_dirs_exist()
+ensureDirsExist()
 
-USER_DATA_DIR = path_str(CHROME_DATA_DIR)
+USER_DATA_DIR = pathStr(SCR_CHROME_DATA_DIR)
 
-if CONFIG_CHROME_PATH:
-    CHROME_PATH = CONFIG_CHROME_PATH
+if platform.system() == "Windows":
+    CHROME_PATH = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
     if not os.path.exists(CHROME_PATH):
-        print(f"Warning: Configured Chrome path {CHROME_PATH} does not exist")
+        CHROME_PATH = "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"
+        if not os.path.exists(CHROME_PATH):
+            localAppData = os.environ.get('LOCALAPPDATA', '')
+            possiblePath = os.path.join(localAppData, "Google\\Chrome\\Application\\chrome.exe")
+            if os.path.exists(possiblePath):
+                CHROME_PATH = possiblePath
 else:
-    if os.name == "nt":
-        CHROME_PATH = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
-        if not os.path.exists(CHROME_PATH):
-            CHROME_PATH = "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"
-    else:
-        CHROME_PATH = "/usr/bin/google-chrome"
-        if not os.path.exists(CHROME_PATH):
-            CHROME_PATH = "/usr/bin/google-chrome-stable"
-        if not os.path.exists(CHROME_PATH):
-            CHROME_PATH = "/snap/bin/chromium"
-        if not os.path.exists(CHROME_PATH):
+    CHROME_PATH = "/usr/bin/google-chrome"
+    if not os.path.exists(CHROME_PATH):
+        CHROME_PATH = "/usr/bin/google-chrome-stable"
+    if not os.path.exists(CHROME_PATH):
+        CHROME_PATH = "/snap/bin/chromium"
+    if not os.path.exists(CHROME_PATH):
+        try:
+            CHROME_PATH = subprocess.check_output(["which", "google-chrome"], text=True).strip()
+        except subprocess.CalledProcessError:
             try:
-                CHROME_PATH = subprocess.check_output(["which", "google-chrome"], text=True).strip()
+                CHROME_PATH = subprocess.check_output(["which", "chrome"], text=True).strip()
             except subprocess.CalledProcessError:
-                try:
-                    CHROME_PATH = subprocess.check_output(["which", "chrome"], text=True).strip()
-                except subprocess.CalledProcessError:
-                    print("Chrome executable not found. Please install Chrome or specify its path.")
-                    print("You can set the CHROME_PATH in the .env file.")
-                    sys.exit(1)
+                print("Chrome executable not found. Please install Chrome or specify its path.")
+                print("You can set the CHROME_PATH in the .env file.")
+                sys.exit(1)
+
+if not os.path.exists(CHROME_PATH):
+    print(f"Error: Chrome executable not found at {CHROME_PATH}")
+    print("Please ensure Chrome is installed or provide the correct path in your .env file.")
+    sys.exit(1)
 
 print(f"Chrome executable path: {CHROME_PATH}")
 
-with open(path_str(JSON_FILE), "r") as file:
+with open(pathStr(JSON_FILE), "r") as file:
     data = json.load(file)
 
 def start_chrome_session():
@@ -77,17 +91,20 @@ def cleanup_chrome(driver, chrome_process):
     print("Cleaning up Chrome session on port", DEBUGGING_PORT)
     
     try:
-        driver.quit()
+        if driver:
+            driver.quit()
     except Exception as e:
         print(f"Error quitting driver: {e}")
     
     try:
-        chrome_process.terminate()
-        chrome_process.wait(timeout=5)
+        if chrome_process:
+            chrome_process.terminate()
+            chrome_process.wait(timeout=5)
     except Exception as e:
         print(f"Error terminating Chrome process: {e}")
         try:
-            chrome_process.kill()
+            if chrome_process:
+                chrome_process.kill()
         except:
             pass
     
@@ -141,7 +158,7 @@ def process_word(driver, word):
                 
                 print(f"  Successfully saved clip {currentIndex}")
                 
-                with open(path_str(JSON_FILE), "w") as file:
+                with open(pathStr(JSON_FILE), "w") as file:
                     json.dump(data, file, indent=2)
                 
                 if pos < 9:
@@ -181,6 +198,10 @@ def process_word(driver, word):
         print(f"Error processing word '{word}': {e}")
         return False
 
+# Initialize driver and chrome_process as None to avoid NameError in finally block
+driver = None
+chrome_process = None
+
 try:
     driver, chrome_process = start_chrome_session()
     driver.maximize_window()
@@ -198,7 +219,7 @@ try:
             success = process_word(driver, currentWord)
             words_processed += 1
             
-            with open(path_str(JSON_FILE), "w") as file:
+            with open(pathStr(JSON_FILE), "w") as file:
                 json.dump(data, file, indent=2)
             
             print(f"Data saved for '{currentWord}'")
@@ -223,9 +244,10 @@ try:
 
 except Exception as e:
     print(f"Unhandled error: {e}")
+    traceback.print_exc()
     
 finally:
-    with open(path_str(JSON_FILE), "w") as file:
+    with open(pathStr(JSON_FILE), "w") as file:
         json.dump(data, file, indent=2)
     
     cleanup_chrome(driver, chrome_process)
