@@ -5,9 +5,9 @@ import time
 from datetime import datetime
 
 JSON_FILE = os.path.join("resources", "words_cleaned.json")
-DB_FILE = os.path.join("resources", "gre_words.db")
+DB_FILE = os.path.join("resources", "greWords.db")
 
-def create_database():
+def createDatabase():
     """Create the SQLite database with the required tables"""
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
@@ -44,7 +44,7 @@ def create_database():
     conn.commit()
     return conn
 
-def load_json_data():
+def loadJsonData():
     """Load data from the JSON file"""
     try:
         with open(JSON_FILE, 'r', encoding='utf-8') as f:
@@ -54,44 +54,44 @@ def load_json_data():
         print(f"Error loading JSON data: {e}")
         return None
 
-def populate_database(conn, data):
+def populateDatabase(conn, data):
     """Populate the database with data from the JSON file"""
     cursor = conn.cursor()
     
-    words_count = 0
-    clips_count = 0
+    wordsCount = 0
+    clipsCount = 0
     
     try:
-        for word, word_data in data.items():
+        for word, wordData in data.items():
             cursor.execute('''
             INSERT INTO words (word, meaning, clips_found)
             VALUES (?, ?, ?)
             ''', (
                 word,
-                word_data.get('meaning', ''),
-                word_data.get('clipsFound', 0)
+                wordData.get('meaning', ''),
+                wordData.get('clipsFound', 0)
             ))
             
-            word_id = cursor.lastrowid
-            words_count += 1
+            wordId = cursor.lastrowid
+            wordsCount += 1
             
-            if 'clipData' in word_data and word_data['clipData']:
-                for clip_index, clip_info in word_data['clipData'].items():
-                    video_start_height = clip_info.get('videoStartHeight', None)
+            if 'clipData' in wordData and wordData['clipData']:
+                for clipIndex, clipInfo in wordData['clipData'].items():
+                    videoStartHeight = clipInfo.get('videoStartHeight', None)
                     
                     cursor.execute('''
                     INSERT INTO clips (word_id, clip_index, video_url, subtitle, video_info, video_start_height)
                     VALUES (?, ?, ?, ?, ?, ?)
                     ''', (
-                        word_id,
-                        int(clip_index),
-                        clip_info.get('videoURL', ''),
-                        clip_info.get('subtitle', ''),
-                        clip_info.get('videoInfo', ''),
-                        video_start_height
+                        wordId,
+                        int(clipIndex),
+                        clipInfo.get('videoURL', ''),
+                        clipInfo.get('subtitle', ''),
+                        clipInfo.get('videoInfo', ''),
+                        videoStartHeight
                     ))
                     
-                    clips_count += 1
+                    clipsCount += 1
             
             conn.commit()
             
@@ -101,12 +101,12 @@ def populate_database(conn, data):
         return False
     
     print(f"Database populated successfully.")
-    print(f"Imported {words_count} words and {clips_count} clips.")
+    print(f"Imported {wordsCount} words and {clipsCount} clips.")
     return True
 
 def main():
     """Main function to convert JSON to SQLite"""
-    start_time = time.time()
+    startTime = time.time()
     
     print(f"Converting JSON data from {JSON_FILE} to SQLite database {DB_FILE}")
     
@@ -114,22 +114,22 @@ def main():
         print(f"Error: JSON file {JSON_FILE} not found")
         return
     
-    conn = create_database()
+    conn = createDatabase()
     
-    data = load_json_data()
+    data = loadJsonData()
     if data is None:
         conn.close()
         return
     
-    success = populate_database(conn, data)
+    success = populateDatabase(conn, data)
     
     conn.close()
     
-    end_time = time.time()
-    execution_time = end_time - start_time
+    endTime = time.time()
+    executionTime = endTime - startTime
     
     if success:
-        print(f"Conversion completed in {execution_time:.2f} seconds")
+        print(f"Conversion completed in {executionTime:.2f} seconds")
     else:
         print("Conversion failed")
 

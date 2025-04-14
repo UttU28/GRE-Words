@@ -1,12 +1,36 @@
 import os
+import subprocess
+import contextlib
 from PIL import Image, ImageDraw, ImageFont
-from config import FONTS_DIR, IMAGES_DIR, BACKGROUND_IMAGE, path_str, ensure_dirs_exist
+from tqdm import tqdm
+from colorama import init, Fore, Style
+from config import (
+    FONTS_DIR, IMAGES_DIR, BACKGROUND_IMAGE, MERGED_VIDEOS_DIR,
+    pathStr, ensureDirsExist
+)
+from db_controller import db
 
-ensure_dirs_exist()
+# Initialize colorama
+init(autoreset=True)
 
-INTRO_IMAGE_PATH = os.path.join(path_str(IMAGES_DIR), "intro.png")
-OUTRO_IMAGE_PATH = os.path.join(path_str(IMAGES_DIR), "outro.png")
+# Color formatting functions
+def success(text): return f"{Fore.GREEN}{text}{Style.RESET_ALL}"
+def error(text): return f"{Fore.RED}{text}{Style.RESET_ALL}"
+def info(text): return f"{Fore.CYAN}{text}{Style.RESET_ALL}"
+def warning(text): return f"{Fore.YELLOW}{text}{Style.RESET_ALL}"
+def highlight(text): return f"{Fore.MAGENTA}{Style.BRIGHT}{text}{Style.RESET_ALL}"
 
+ensureDirsExist()
+
+# Image file paths
+INTRO_IMAGE_PATH = os.path.join(pathStr(IMAGES_DIR), "intro.png")
+OUTRO_IMAGE_PATH = os.path.join(pathStr(IMAGES_DIR), "outro.png")
+
+# Video file paths
+INTRO_VIDEO_PATH = os.path.join(pathStr(MERGED_VIDEOS_DIR), "intro.mp4")
+OUTRO_VIDEO_PATH = os.path.join(pathStr(MERGED_VIDEOS_DIR), "outro.mp4")
+
+# Font and color setup
 FONTS = {
     "title": None,
     "vocabulary": None,
@@ -31,10 +55,27 @@ BOLD_OFFSETS = [
     (2, -2),  (2, 0),  (2, 2)
 ]
 
+class SuppressOutput:
+    def __init__(self):
+        self.null_fds = [os.open(os.devnull, os.O_RDWR) for _ in range(2)]
+        self.save_fds = [os.dup(1), os.dup(2)]
+
+    def __enter__(self):
+        os.dup2(self.null_fds[0], 1)
+        os.dup2(self.null_fds[1], 2)
+        return self
+
+    def __exit__(self, *_):
+        os.dup2(self.save_fds[0], 1)
+        os.dup2(self.save_fds[1], 2)
+        for fd in self.null_fds + self.save_fds:
+            os.close(fd)
+
+# Image creation functions
 def loadFont(fontName, size):
     fontPaths = [
-        os.path.join(path_str(FONTS_DIR), fontName),
-        os.path.join(path_str(IMAGES_DIR), fontName),
+        os.path.join(pathStr(FONTS_DIR), fontName),
+        os.path.join(pathStr(IMAGES_DIR), fontName),
         fontName
     ]
     
@@ -44,7 +85,7 @@ def loadFont(fontName, size):
         except (IOError, OSError):
             continue
     
-    print(f"Warning: Font {fontName} not found, using default font")
+    print(warning(f"Warning: Font {fontName} not found, using default font"))
     return ImageFont.load_default()
 
 def loadFonts():
@@ -141,7 +182,7 @@ def drawFooter(draw, centerX, height, maxWidth):
     return footerData, ctaY
 
 def createIntroImage(word):
-    originalImage = Image.open(path_str(BACKGROUND_IMAGE))
+    originalImage = Image.open(pathStr(BACKGROUND_IMAGE))
     img = originalImage.copy()
     draw = ImageDraw.Draw(img)
     
@@ -204,12 +245,10 @@ def createIntroImage(word):
     )
     
     img.save(INTRO_IMAGE_PATH)
-    print(f"Intro image created: {INTRO_IMAGE_PATH}")
-    
     return INTRO_IMAGE_PATH
 
 def createOutroImage():
-    originalImage = Image.open(path_str(BACKGROUND_IMAGE))
+    originalImage = Image.open(pathStr(BACKGROUND_IMAGE))
     img = originalImage.copy()
     draw = ImageDraw.Draw(img)
     
@@ -285,17 +324,76 @@ def createOutroImage():
     )
     
     img.save(OUTRO_IMAGE_PATH)
-    print(f"Outro image created: {OUTRO_IMAGE_PATH}")
-    
     return OUTRO_IMAGE_PATH
 
+# Video creation functions
+def createVideoFromImage(imageLocation, outputLocation, duration, fadeIn=False, fadeOut=False):
+    filterComplex = []
+    
+    if fadeIn and fadeOut:
+        filterComplex = [
+            'fade=t=in:st=0:d=1',
+            'fade=t=out:st=' + str(duration-1) + ':d=1'
+        ]
+    elif fadeIn:
+        filterComplex = ['fade=t=in:st=0:d=1']
+    elif fadeOut:
+        filterComplex = ['fade=t=out:st=' + str(duration-1) + ':d=1']
+        
+    filterStr = ','.join(filterComplex) if filterComplex else 'null'
+    
+    ffmpegCommand = [
+        'ffmpeg',
+        '-loop', '1',
+        '-i', imageLocation,
+        '-f', 'lavfi',
+        '-i', 'anullsrc=r=44100:cl=stereo',
+        '-t', str(duration),
+        '-vf', filterStr,
+        '-c:v', 'libx264',
+        '-c:a', 'aac',
+        '-b:a', '192k',
+        '-ar', '44100',
+        '-ac', '2',
+        '-shortest',
+        '-tune', 'stillimage',
+        '-pix_fmt', 'yuv420p',
+        '-y', outputLocation
+    ]
+    
+    try:
+        with SuppressOutput():
+            subprocess.run(ffmpegCommand, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        return True
+    except Exception as e:
+        return False
+
+# Main process function
+def createIntroOutroVideos(word):
+    # Track progress in steps
+    steps = [
+        {"name": "Loading fonts", "func": loadFonts},
+        {"name": "Creating intro image", "func": lambda: createIntroImage(word)},
+        {"name": "Creating outro image", "func": createOutroImage},
+        {"name": "Creating intro video", "func": lambda: createVideoFromImage(INTRO_IMAGE_PATH, INTRO_VIDEO_PATH, 3, fadeIn=True, fadeOut=False)},
+        {"name": "Creating outro video", "func": lambda: createVideoFromImage(OUTRO_IMAGE_PATH, OUTRO_VIDEO_PATH, 5, fadeIn=False, fadeOut=True)}
+    ]
+    
+    progressBar = tqdm(steps, desc=f"Creating intro/outro for: {word.upper()}", unit="step")
+    
+    successful = 0
+    for step in progressBar:
+        result = step["func"]()
+        if result is not False:  # Some functions return None, which should count as success
+            successful += 1
+    
+    if successful == len(steps):
+        print(success(f"Successfully created intro/outro videos for {word}"))
+        return True
+    else:
+        print(warning(f"Created {successful}/{len(steps)} intro/outro elements"))
+        return False
+
 if __name__ == "__main__":
-    print("Generating intro and outro images for vocabulary videos...")
-    loadFonts()
-    # wordInput = input("Enter the vocabulary word: ")
     wordInput = "abate"
-    
-    introPath = createIntroImage(wordInput)
-    outroPath = createOutroImage()
-    
-    print(f"Images created successfully!\nIntro: {introPath}\nOutro: {outroPath}") 
+    createIntroOutroVideos(wordInput) 
