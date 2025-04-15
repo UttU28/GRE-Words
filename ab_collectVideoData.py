@@ -60,8 +60,26 @@ if not os.path.exists(CHROME_PATH):
 
 print(f"Chrome executable path: {CHROME_PATH}")
 
-with open(pathStr(JSON_FILE), "r") as file:
-    data = json.load(file)
+def load_json_data():
+    """Load the JSON data from file"""
+    try:
+        with open(pathStr(JSON_FILE), "r") as file:
+            return json.load(file)
+    except FileNotFoundError:
+        print(f"JSON file not found at {pathStr(JSON_FILE)}. Creating a new one.")
+        return {}
+    except json.JSONDecodeError:
+        print(f"Error decoding JSON from {pathStr(JSON_FILE)}. Creating a new one.")
+        return {}
+
+def save_json_data(data):
+    """Save the JSON data to file"""
+    with open(pathStr(JSON_FILE), "w") as file:
+        json.dump(data, file, indent=2)
+    print("Data saved to JSON file")
+
+# Load the JSON data
+data = load_json_data()
 
 def start_chrome_session():
     """Start Chrome browser and connect to it with Selenium"""
@@ -107,11 +125,18 @@ def cleanup_chrome(driver, chrome_process):
                 chrome_process.kill()
         except:
             pass
-    
 
 def process_word(driver, word):
     """Process a single word and collect its clips"""
     print(f"Processing word: {word}")
+    
+    # Ensure the word exists in the data structure
+    if word not in data:
+        data[word] = {
+            "searched": False,
+            "clipsFound": 0,
+            "clipData": {}
+        }
     
     try:
         driver.get(f"https://www.playphrase.me/#/search?q={word}")
@@ -158,8 +183,8 @@ def process_word(driver, word):
                 
                 print(f"  Successfully saved clip {currentIndex}")
                 
-                with open(pathStr(JSON_FILE), "w") as file:
-                    json.dump(data, file, indent=2)
+                # Save progress after each clip
+                save_json_data(data)
                 
                 if pos < 9:
                     element.click()
@@ -198,34 +223,45 @@ def process_word(driver, word):
         print(f"Error processing word '{word}': {e}")
         return False
 
-# Initialize driver and chrome_process as None to avoid NameError in finally block
-driver = None
-chrome_process = None
+def get_unsearched_words():
+    """Get a list of words that haven't been searched yet"""
+    return [word for word, wordData in data.items() if not wordData.get("searched", False)]
 
-try:
-    driver, chrome_process = start_chrome_session()
-    driver.maximize_window()
-    
-    driver.get("https://www.google.com")
-    sleep(1)
-    
-    words_processed = 0
-    consecutive_no_clips = 0  # Counter for consecutive words with no clips
-    
-    for currentWord, wordData in data.items():
-        if not wordData["searched"]:
+def main():
+    # Initialize driver and chrome_process as None to avoid NameError in finally block
+    driver = None
+    chrome_process = None
+
+    try:
+        driver, chrome_process = start_chrome_session()
+        driver.maximize_window()
+        
+        driver.get("https://www.google.com")
+        sleep(1)
+        
+        words_processed = 0
+        consecutive_no_clips = 0  # Counter for consecutive words with no clips
+        
+        unsearched_words = get_unsearched_words()
+        
+        if not unsearched_words:
+            print("No unsearched words found in the JSON data. Please add words to search.")
+            return
+            
+        print(f"Found {len(unsearched_words)} unsearched words.")
+        
+        for currentWord in unsearched_words:
             print(f"\n{'='*50}\nProcessing word #{words_processed+1}: {currentWord}\n{'='*50}")
             
             success = process_word(driver, currentWord)
             words_processed += 1
             
-            with open(pathStr(JSON_FILE), "w") as file:
-                json.dump(data, file, indent=2)
+            save_json_data(data)
             
             print(f"Data saved for '{currentWord}'")
             
             # Check if we found any clips for this word
-            if len(data[currentWord]["clipData"]) == 0:
+            if data[currentWord]["clipsFound"] == 0:
                 consecutive_no_clips += 1
                 print(f"Warning: No clips found for {consecutive_no_clips} consecutive words")
                 if consecutive_no_clips >= 5:
@@ -239,16 +275,16 @@ try:
             driver.get("https://www.google.com")
             sleep(2)
             
-    
-    print(f"Script completed. Processed {words_processed} words.")
+        print(f"Script completed. Processed {words_processed} words.")
 
-except Exception as e:
-    print(f"Unhandled error: {e}")
-    traceback.print_exc()
-    
-finally:
-    with open(pathStr(JSON_FILE), "w") as file:
-        json.dump(data, file, indent=2)
-    
-    cleanup_chrome(driver, chrome_process)
+    except Exception as e:
+        print(f"Unhandled error: {e}")
+        traceback.print_exc()
+        
+    finally:
+        save_json_data(data)
+        cleanup_chrome(driver, chrome_process)
+
+if __name__ == "__main__":
+    main()
             
