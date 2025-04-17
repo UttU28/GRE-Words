@@ -8,7 +8,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-import pyautogui
+# import pyautogui
 from colorama import init, Fore, Style
 from config import (
     INS_CHROME_DATA_DIR, DEBUGGING_PORT, CHROME_PATH as CONFIG_CHROME_PATH,
@@ -56,18 +56,30 @@ def automateInstagramActions(debuggingPort, videoPath=None, caption="Instagram s
         )
         createButton.click()
         
-        selectButton = WebDriverWait(driver, 20).until(
-            EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Select from computer')]"))
-        )
-        selectButton.click()
-        
         if videoPath:
-            time.sleep(2)
-            pyautogui.write(videoPath, interval=0.05)
-            time.sleep(1)
-            pyautogui.press('enter')
-            print(f"{Fore.GREEN}Selected video: {os.path.basename(videoPath)}")
-            
+            if os.name == "nt":
+                selectButton = WebDriverWait(driver, 20).until(
+                    EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Select from computer')]"))
+                )
+                selectButton.click()
+                
+                time.sleep(2)
+                pyautogui.write(videoPath, interval=0.05)
+                time.sleep(1)
+                pyautogui.press('enter')
+                print(f"{Fore.GREEN}Selected video: {os.path.basename(videoPath)}")
+            else:
+                time.sleep(2)
+                try:
+                    uploadInput = WebDriverWait(driver, 10).until(
+                        EC.presence_of_element_located((By.XPATH, "//input[@type='file']"))
+                    )
+                    uploadInput.send_keys(videoPath)
+                    print(f"{Fore.GREEN}Selected video (Ubuntu method): {os.path.basename(videoPath)}")
+                except Exception as e:
+                    print(f"{Fore.RED}Could not find file input to upload video: {e}")
+                    raise
+
             time.sleep(5)
             
             try:
@@ -243,11 +255,17 @@ def main(word, caption):
         time.sleep(5)
         
         automateInstagramActions(DEBUGGING_PORT, videoPath, caption)
+        time.sleep(5)
         
         print(f"{Fore.CYAN}Complete the process in the browser. Press Ctrl+C to close Chrome.")
         
-        chromeProcess.wait()
-        
+        # chromeProcess.wait()
+        print(f"\n{Fore.YELLOW}Closing Chrome...")
+        try:
+            chromeProcess.terminate()
+            chromeProcess.wait(timeout=5)
+        except:
+            chromeProcess.kill()        
     except KeyboardInterrupt:
         print(f"\n{Fore.YELLOW}Closing Chrome...")
         try:
@@ -262,6 +280,6 @@ def main(word, caption):
     print(f"{Fore.GREEN}Upload process completed")
 
 if __name__ == "__main__":
-    word = "lassitude"
+    word = "nuance"
     caption = "Instagram said \"post daily\" — so here's me being obedient."
     main(word, caption) 

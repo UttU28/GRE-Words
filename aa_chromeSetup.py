@@ -77,7 +77,11 @@ def main():
     if len(sys.argv) > 1:
         url = sys.argv[1]
     else:
-        url = "https://www.google.com"
+        # Set default URL based on profile choice
+        if profile_choice == "1":
+            url = "https://www.playphrase.me/"
+        else:  # profile_choice == "2"
+            url = "https://www.instagram.com/"
     
     print(f"Opening Chrome to URL: {url}")
     print("=" * 80)
