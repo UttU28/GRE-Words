@@ -262,6 +262,6 @@ def main(word, caption):
     print(f"{Fore.GREEN}Upload process completed")
 
 if __name__ == "__main__":
-    word = "mitigate"
+    word = "lassitude"
     caption = "Instagram said \"post daily\" — so here's me being obedient."
     main(word, caption) 

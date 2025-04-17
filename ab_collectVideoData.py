@@ -152,7 +152,7 @@ def process_word(driver, word):
             print(f"Processing clip position {pos}")
             
             try:
-                sleep(1)
+                sleep(2)
                 
                 current_url = driver.current_url
                 
@@ -190,7 +190,7 @@ def process_word(driver, word):
                     element.click()
                     sleep(0.5)
                     actions.send_keys(Keys.ARROW_DOWN).perform()
-                    sleep(1)
+                    sleep(2)
                     
                     new_url = driver.current_url
                     if current_url == new_url:
@@ -237,7 +237,7 @@ def main():
         driver.maximize_window()
         
         driver.get("https://www.google.com")
-        sleep(1)
+        sleep(2)
         
         words_processed = 0
         consecutive_no_clips = 0  # Counter for consecutive words with no clips

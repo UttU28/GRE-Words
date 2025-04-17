@@ -358,7 +358,7 @@ if __name__ == "__main__":
         word = sys.argv[1].lower().strip()
         makeImagesForWord(word)
     else:
-        word = "abate"
+        word = "nuance"
         if word:
             makeImagesForWord(word)
         else:

@@ -142,7 +142,7 @@ if __name__ == "__main__":
         downloadWordVideos(word)
     else:
         # word = input("Enter the word to download videos for: ").strip().lower()
-        word = "abate"
+        word = "nuance"
         if word:
             downloadWordVideos(word)
         else:

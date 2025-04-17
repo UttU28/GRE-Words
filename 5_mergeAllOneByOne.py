@@ -195,7 +195,7 @@ if __name__ == "__main__":
         
         mergeWordVideos(word, includeIntroOutro)
     else:
-        word = "abate"
+        word = "nuance"
         if word:
             mergeWordVideos(word, includeIntroOutro)
         else:

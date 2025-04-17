@@ -112,7 +112,7 @@ if __name__ == "__main__":
         processWord(word)
     else:
         # word = input("Enter the word to process videos for: ").lower().strip()
-        word = "abate"
+        word = "nuance"
         if word:
             processWord(word)
         else:
