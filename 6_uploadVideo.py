@@ -8,7 +8,6 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-# import pyautogui
 from colorama import init, Fore, Style
 from config import (
     INS_CHROME_DATA_DIR, DEBUGGING_PORT, CHROME_PATH as CONFIG_CHROME_PATH,
@@ -58,6 +57,7 @@ def automateInstagramActions(debuggingPort, videoPath=None, caption="Instagram s
         
         if videoPath:
             if os.name == "nt":
+                import pyautogui
                 selectButton = WebDriverWait(driver, 20).until(
                     EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Select from computer')]"))
                 )
@@ -211,6 +211,44 @@ def automateInstagramActions(debuggingPort, videoPath=None, caption="Instagram s
                 
                 print(f"{Fore.GREEN}Enabled auto-generated captions")
                 
+                # Click the share/submit button to post the content
+                time.sleep(2)
+                try:
+                    shareButton = WebDriverWait(driver, 10).until(
+                        EC.element_to_be_clickable((By.XPATH, "//div[@role='button' and text()='Share']"))
+                    )
+                    shareButton.click()
+                    print(f"{Fore.GREEN}Clicked Share button to post content")
+                    
+                    # Wait for post completion confirmation message (up to 1 minute)
+                    try:
+                        success_message = WebDriverWait(driver, 60).until(
+                            EC.presence_of_element_located((By.XPATH, "//h3[contains(text(), 'Your reel has been shared')]"))
+                        )
+                        print(f"{Fore.GREEN}Post has been shared successfully - confirmation message detected")
+                    except Exception as e:
+                        print(f"{Fore.YELLOW}Warning: Could not detect share confirmation message: {e}")
+                        # Continue anyway as the post might still have been successful
+                except Exception:
+                    try:
+                        shareButton = WebDriverWait(driver, 5).until(
+                            EC.element_to_be_clickable((By.XPATH, "//*[text()='Share']"))
+                        )
+                        shareButton.click()
+                        print(f"{Fore.GREEN}Clicked Share button to post content")
+                        
+                        # Wait for post completion confirmation message (up to 1 minute)
+                        try:
+                            success_message = WebDriverWait(driver, 60).until(
+                                EC.presence_of_element_located((By.XPATH, "//h3[contains(text(), 'Your reel has been shared')]"))
+                            )
+                            print(f"{Fore.GREEN}Post has been shared successfully - confirmation message detected")
+                        except Exception as e:
+                            print(f"{Fore.YELLOW}Warning: Could not detect share confirmation message: {e}")
+                            # Continue anyway as the post might still have been successful
+                    except Exception as e:
+                        print(f"{Fore.RED}Could not click Share button: {e}")
+                
             except Exception as e:
                 print(f"{Fore.RED}Error: {e}")
         
@@ -283,3 +321,4 @@ if __name__ == "__main__":
     word = "nuance"
     caption = "Instagram said \"post daily\" — so here's me being obedient."
     main(word, caption) 
+    
