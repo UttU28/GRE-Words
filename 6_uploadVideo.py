@@ -5,6 +5,7 @@ import subprocess
 import time
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -15,6 +16,10 @@ from config import (
 )
 
 init(autoreset=True)
+
+# Path to the specific chromedriver
+CHROMEDRIVER_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 
+                               'resources', 'chromedriver')
 
 def getChromePath():
     if CONFIG_CHROME_PATH and os.path.exists(CONFIG_CHROME_PATH):
@@ -46,7 +51,10 @@ def automateInstagramActions(debuggingPort, videoPath=None, caption="Instagram s
     try:
         chromeOptions = Options()
         chromeOptions.add_experimental_option("debuggerAddress", f"localhost:{debuggingPort}")
-        driver = webdriver.Chrome(options=chromeOptions)
+        
+        # Use the specific chromedriver
+        service = Service(executable_path=CHROMEDRIVER_PATH)
+        driver = webdriver.Chrome(service=service, options=chromeOptions)
         
         print(f"{Fore.CYAN}Connected to Chrome. Starting automation...")
         
