@@ -166,7 +166,13 @@ def automateInstagramActions(debuggingPort, videoPath=None, caption="Instagram s
                     )
                     captionField.click()
                     time.sleep(1)
-                    captionField.send_keys(caption)
+                    
+                    # Type the caption in smaller chunks to avoid issues
+                    chunk_size = 50
+                    for i in range(0, len(caption), chunk_size):
+                        chunk = caption[i:i+chunk_size]
+                        captionField.send_keys(chunk)
+                        time.sleep(0.5)  # Small pause between chunks
                 except Exception:
                     try:
                         captionField = WebDriverWait(driver, 5).until(
@@ -174,11 +180,29 @@ def automateInstagramActions(debuggingPort, videoPath=None, caption="Instagram s
                         )
                         captionField.click()
                         time.sleep(1)
-                        captionField.send_keys(caption)
+                        
+                        # Type the caption in smaller chunks to avoid issues
+                        chunk_size = 50
+                        for i in range(0, len(caption), chunk_size):
+                            chunk = caption[i:i+chunk_size]
+                            captionField.send_keys(chunk)
+                            time.sleep(0.5)  # Small pause between chunks
                     except Exception:
                         try:
                             captionField = driver.find_element(By.XPATH, "//div[@contenteditable='true']")
-                            driver.execute_script("arguments[0].innerText = arguments[1]", captionField, caption)
+                            
+                            # Use JavaScript to set the caption in case the typing method fails
+                            try:
+                                driver.execute_script("arguments[0].innerText = arguments[1]", captionField, caption)
+                            except:
+                                # Fallback: Try to set the caption in smaller chunks
+                                driver.execute_script("arguments[0].innerText = ''", captionField)
+                                chunk_size = 50
+                                for i in range(0, len(caption), chunk_size):
+                                    chunk = caption[i:i+chunk_size]
+                                    current = driver.execute_script("return arguments[0].innerText", captionField)
+                                    driver.execute_script("arguments[0].innerText = arguments[1]", captionField, current + chunk)
+                                    time.sleep(0.5)
                         except Exception:
                             raise Exception("Could not enter caption")
                 

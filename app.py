@@ -23,64 +23,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger('word_processor')
 
-# English vocabulary captions for Instagram posts
-englishVocabCaptions = [
-    "Just here to drop knowledge and vibes.",
-    "Words hit different when you know what they mean.",
-    "Fluent in English, sarcasm, and subtle shade.",
-    "Reading books like it's a personality trait.",
-    "My vibe is 50% grammar, 50% audacity.",
-    "Learning new words to win petty arguments.",
-    "If you can spell it, you can manifest it.",
-    "More words, less worries.",
-    "Not lost, just deep in a definition.",
-    "Evolving my vocabulary one caption at a time.",
-    
-    "Talk wordy to me.",
-    "Books before bros. Always.",
-    "My sentences come with seasoning.",
-    "Running on caffeine and compound words.",
-    "I annotate vibes now.",
-    "Every day is a vocab glow-up.",
-    "Your favorite overthinker with a dictionary.",
-    "Proof that nerdy is the new hot.",
-    "Still processing the Oxford comma betrayal.",
-    "Reading minds and metaphors.",
-    
-    "Lexicon locked and loaded.",
-    "Living life one word of the day at a time.",
-    "Overanalyzing everything since... always.",
-    "Trying not to correct your grammar in public.",
-    "Words are weapons. I'm fully armed.",
-    "Mentally in a library. Physically? Here.",
-    "Not a phase, just a lifelong love for adjectives.",
-    "This post contains high levels of wordplay.",
-    "Currently vibing with obscure synonyms.",
-    "Inhale vocabulary, exhale wisdom.",
-    
-    "Making dictionaries look cool again.",
-    "When in doubt, define it out.",
-    "Vocabulary: leveled up.",
-    "Grammar police, but fashion-forward.",
-    "Linguistic flex, casual execution.",
-    "Spelling it right just feels powerful.",
-    "I'm not dramatic, I'm descriptively expressive.",
-    "Manifesting main character diction.",
-    "Reading is my cardio. Captions are my reps.",
-    "My caption game? Autocorrect could never.",
-    
-    "Not just smart — syntactically smooth.",
-    "This caption brought to you by brain cells and vibes.",
-    "My favorite accessory? A metaphor.",
-    "Trying to stay humble with a vocabulary like this.",
-    "Diction: sharp. Fit: sharper.",
-    "Loving myself like I love long words.",
-    "Literally built different — like, with language.",
-    "Word nerd? Nah, I'm a word artist.",
-    "Being articulate is my superpower.",
-    "Posting like punctuation depends on it."
-]
-
 # Color formatting functions
 def success(text): return f"{Fore.GREEN}{text}{Style.RESET_ALL}"
 def error(text): return f"{Fore.RED}{text}{Style.RESET_ALL}"
@@ -241,9 +183,9 @@ def processCompleteWord(word=None):
     
     # Upload the final video to Instagram
     print(highlight(f"\n--- STEP 6: Uploading video to Instagram for {word.upper()} ---"))
-    # Select a random caption from the list and append it to the word
-    random_caption = random.choice(englishVocabCaptions)
-    caption = f"{word.upper()}    {random_caption}"
+    # Fixed caption with duplicate hashtags removed
+    fixed_caption = """POV: You just unlocked a word that 99% still misuse  | If you're prepping for GRE, IELTS, or just wanna sound intellectually dangerous — SAVE THIS.  | Speak smarter, write sharper, and flex that vocab in style | Tag your study buddy | #GREprep #IELTSvocab #wordoftheday #englishwithstyle #speaklikeanative #studygram #vocabularyboost #learnenglish #englishreels #explorepage #IELTSpreparation #englishvocabulary #spokenenglish #studymotivation #englishlearning #dailyvocab #englishpractice #fluencygoals #vocabchallenge #englishtips #educationreels #englishgrammar #ieltsvocab #smartvocab"""
+    caption = f"{word.upper()} ~ ~ ~{fixed_caption}"
     uploadSuccess = False
     try:
         uploadResult = uploadVideo(word, caption)
@@ -288,5 +230,23 @@ def processCompleteWord(word=None):
 
 if __name__ == "__main__":
     ensureDirsExist()
-    processCompleteWord()
+    
+    try:
+        print(highlight("Starting continuous word processing cycle"))
+        print(info("Pattern: Process word -> 11hr wait -> Process word -> Repeat"))
+        
+        while True:
+            # Process first word
+            print(highlight("\n=== Processing first word in cycle ==="))
+            processCompleteWord()
+            
+            # Sleep for 11 hours
+            print(info(f"\nSleeping for 11 hours before next cycle..."))
+            time.sleep(39600)  # 11 hours = 39600 seconds
+            
+    except KeyboardInterrupt:
+        print(warning("\nProcess interrupted by user. Exiting..."))
+    except Exception as e:
+        print(error(f"\nAn error occurred in the main loop: {e}"))
+        logger.error(f"Main loop error: {e}")
         

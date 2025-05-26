@@ -1,0 +1,49 @@
+2025-05-22 20:08:54 - INFO - STARTED processing word: CULMINATE at 2025-05-22 20:08:54
+2025-05-22 20:11:41 - WARNING - Failed to upload video for culminate to Instagram
+2025-05-22 20:11:41 - INFO - Updated database: marked 'culminate' as processed at 2025-05-22 20:11:41
+2025-05-22 20:11:41 - INFO - FINISHED processing word: CULMINATE at 2025-05-22 20:11:41
+2025-05-22 20:11:41 - INFO - Total processing time: 2 minutes 46 seconds
+2025-05-22 20:11:41 - INFO - Overall status: PARTIAL SUCCESS (upload failed)
+2025-05-22 20:11:41 - INFO - --------------------------------------------------
+2025-05-23 07:11:41 - INFO - STARTED processing word: PER SE at 2025-05-23 07:11:41
+2025-05-23 07:14:04 - WARNING - Failed to upload video for per se to Instagram
+2025-05-23 07:14:04 - INFO - Updated database: marked 'per se' as processed at 2025-05-23 07:14:04
+2025-05-23 07:14:04 - INFO - FINISHED processing word: PER SE at 2025-05-23 07:14:04
+2025-05-23 07:14:04 - INFO - Total processing time: 2 minutes 23 seconds
+2025-05-23 07:14:04 - INFO - Overall status: PARTIAL SUCCESS (upload failed)
+2025-05-23 07:14:04 - INFO - --------------------------------------------------
+2025-05-23 18:14:04 - INFO - STARTED processing word: CALUMNY at 2025-05-23 18:14:04
+2025-05-23 18:17:01 - WARNING - Failed to upload video for calumny to Instagram
+2025-05-23 18:17:01 - INFO - Updated database: marked 'calumny' as processed at 2025-05-23 18:17:01
+2025-05-23 18:17:01 - INFO - FINISHED processing word: CALUMNY at 2025-05-23 18:17:01
+2025-05-23 18:17:01 - INFO - Total processing time: 2 minutes 57 seconds
+2025-05-23 18:17:01 - INFO - Overall status: PARTIAL SUCCESS (upload failed)
+2025-05-23 18:17:01 - INFO - --------------------------------------------------
+2025-05-24 05:17:01 - INFO - STARTED processing word: NORMATIVE at 2025-05-24 05:17:01
+2025-05-24 05:19:44 - WARNING - Failed to upload video for normative to Instagram
+2025-05-24 05:19:44 - INFO - Updated database: marked 'normative' as processed at 2025-05-24 05:19:44
+2025-05-24 05:19:44 - INFO - FINISHED processing word: NORMATIVE at 2025-05-24 05:19:44
+2025-05-24 05:19:44 - INFO - Total processing time: 2 minutes 42 seconds
+2025-05-24 05:19:44 - INFO - Overall status: PARTIAL SUCCESS (upload failed)
+2025-05-24 05:19:44 - INFO - --------------------------------------------------
+2025-05-24 16:19:44 - INFO - STARTED processing word: HEW at 2025-05-24 16:19:44
+2025-05-24 16:21:54 - WARNING - Failed to upload video for hew to Instagram
+2025-05-24 16:21:54 - INFO - Updated database: marked 'hew' as processed at 2025-05-24 16:21:54
+2025-05-24 16:21:54 - INFO - FINISHED processing word: HEW at 2025-05-24 16:21:54
+2025-05-24 16:21:54 - INFO - Total processing time: 2 minutes 9 seconds
+2025-05-24 16:21:54 - INFO - Overall status: PARTIAL SUCCESS (upload failed)
+2025-05-24 16:21:54 - INFO - --------------------------------------------------
+2025-05-25 03:21:54 - INFO - STARTED processing word: FLUKE at 2025-05-25 03:21:54
+2025-05-25 03:24:04 - WARNING - Failed to upload video for fluke to Instagram
+2025-05-25 03:24:04 - INFO - Updated database: marked 'fluke' as processed at 2025-05-25 03:24:04
+2025-05-25 03:24:04 - INFO - FINISHED processing word: FLUKE at 2025-05-25 03:24:04
+2025-05-25 03:24:04 - INFO - Total processing time: 2 minutes 10 seconds
+2025-05-25 03:24:04 - INFO - Overall status: PARTIAL SUCCESS (upload failed)
+2025-05-25 03:24:04 - INFO - --------------------------------------------------
+2025-05-25 14:24:04 - INFO - STARTED processing word: FUTILE at 2025-05-25 14:24:04
+2025-05-25 14:26:28 - WARNING - Failed to upload video for futile to Instagram
+2025-05-25 14:26:28 - INFO - Updated database: marked 'futile' as processed at 2025-05-25 14:26:28
+2025-05-25 14:26:28 - INFO - FINISHED processing word: FUTILE at 2025-05-25 14:26:28
+2025-05-25 14:26:28 - INFO - Total processing time: 2 minutes 24 seconds
+2025-05-25 14:26:28 - INFO - Overall status: PARTIAL SUCCESS (upload failed)
+2025-05-25 14:26:28 - INFO - --------------------------------------------------
