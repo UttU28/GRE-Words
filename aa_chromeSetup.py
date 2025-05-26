@@ -2,6 +2,7 @@ import os
 import sys
 import subprocess
 import time
+from utils import error, warning
 from config import (
     SCR_CHROME_DATA_DIR, INS_CHROME_DATA_DIR, DEBUGGING_PORT, CHROME_PATH as CONFIG_CHROME_PATH, 
     pathStr, ensureDirsExist
@@ -13,7 +14,7 @@ def get_chrome_path():
     if CONFIG_CHROME_PATH:
         chrome_path = CONFIG_CHROME_PATH
         if not os.path.exists(chrome_path):
-            print(f"Warning: Configured Chrome path {chrome_path} does not exist")
+            print(warning(f"Warning: Configured Chrome path {chrome_path} does not exist"))
         else:
             return chrome_path
 
@@ -144,7 +145,7 @@ def main():
         print("Chrome closed.")
     
     except Exception as e:
-        print(f"Error: {e}")
+        print(error(f"Error: {e}"))
     
     print("Setup complete. You can now run the scraping scripts.")
 

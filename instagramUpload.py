@@ -5,7 +5,6 @@ import subprocess
 import time
 import logging
 from datetime import datetime
-from colorama import init, Fore, Style
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
@@ -19,9 +18,6 @@ from config import (
     INS_CHROME_DATA_DIR, DEBUGGING_PORT, CHROME_PATH as CONFIG_CHROME_PATH,
     FINAL_VIDEOS_DIR, pathStr, ensureDirsExist
 )
-
-# Initialize colorama
-init(autoreset=True)
 
 # Set up logging
 log_file = "instagram_upload.log"
@@ -58,7 +54,7 @@ def getChromePath():
                 try:
                     chromePath = subprocess.check_output(["which", "chrome"], text=True).strip()
                 except subprocess.CalledProcessError:
-                    print(f"{Fore.RED}Chrome executable not found. Please install Chrome.")
+                    print(error("Chrome executable not found. Please install Chrome."))
                     sys.exit(1)
     
     return chromePath
@@ -72,7 +68,7 @@ def automateInstagramActions(debuggingPort, videoPath=None, caption="Instagram s
         service = Service(executable_path=CHROMEDRIVER_PATH)
         driver = webdriver.Chrome(service=service, options=chromeOptions)
         
-        print(f"{Fore.CYAN}Connected to Chrome. Starting automation...")
+        print(info("Connected to Chrome. Starting automation..."))
         
         createButton = WebDriverWait(driver, 20).until(
             EC.element_to_be_clickable((By.XPATH, "//span[contains(text(), 'Create')]"))
@@ -91,7 +87,7 @@ def automateInstagramActions(debuggingPort, videoPath=None, caption="Instagram s
                 pyautogui.write(videoPath, interval=0.05)
                 time.sleep(1)
                 pyautogui.press('enter')
-                print(f"{Fore.GREEN}Selected video: {os.path.basename(videoPath)}")
+                print(success(f"Selected video: {os.path.basename(videoPath)}"))
             else:
                 time.sleep(2)
                 try:
@@ -99,9 +95,9 @@ def automateInstagramActions(debuggingPort, videoPath=None, caption="Instagram s
                         EC.presence_of_element_located((By.XPATH, "//input[@type='file']"))
                     )
                     uploadInput.send_keys(videoPath)
-                    print(f"{Fore.GREEN}Selected video (Ubuntu method): {os.path.basename(videoPath)}")
+                    print(success(f"Selected video (Ubuntu method): {os.path.basename(videoPath)}"))
                 except Exception as e:
-                    print(f"{Fore.RED}Could not find file input to upload video: {e}")
+                    print(error(f"Could not find file input to upload video: {e}"))
                     raise
 
             time.sleep(5)
@@ -222,7 +218,7 @@ def automateInstagramActions(debuggingPort, videoPath=None, caption="Instagram s
                         except Exception:
                             raise Exception("Could not enter caption")
                 
-                print(f"{Fore.GREEN}Added caption")
+                print(success("Added caption"))
                 
                 try:
                     accessibilityButton = WebDriverWait(driver, 10).until(
@@ -255,9 +251,9 @@ def automateInstagramActions(debuggingPort, videoPath=None, caption="Instagram s
                         if captionsToggle.get_attribute("aria-checked") == "false":
                             captionsToggle.click()
                     except Exception:
-                        print(f"{Fore.YELLOW}Could not enable auto-generated captions")
+                        print(warning("Could not enable auto-generated captions"))
                 
-                print(f"{Fore.GREEN}Enabled auto-generated captions")
+                print(success("Enabled auto-generated captions"))
                 
                 # Click the share/submit button to post the content
                 time.sleep(2)
@@ -266,16 +262,16 @@ def automateInstagramActions(debuggingPort, videoPath=None, caption="Instagram s
                         EC.element_to_be_clickable((By.XPATH, "//div[@role='button' and text()='Share']"))
                     )
                     shareButton.click()
-                    print(f"{Fore.GREEN}Clicked Share button to post content")
+                    print(success("Clicked Share button to post content"))
                     
                     # Wait for post completion confirmation message (up to 1 minute)
                     try:
                         success_message = WebDriverWait(driver, 60).until(
                             EC.presence_of_element_located((By.XPATH, "//h3[contains(text(), 'Your reel has been shared')]"))
                         )
-                        print(f"{Fore.GREEN}Post has been shared successfully - confirmation message detected")
+                        print(success("Post has been shared successfully - confirmation message detected"))
                     except Exception as e:
-                        print(f"{Fore.YELLOW}Warning: Could not detect share confirmation message: {e}")
+                        print(warning(f"Warning: Could not detect share confirmation message: {e}"))
                         # Continue anyway as the post might still have been successful
                 except Exception:
                     try:
@@ -283,28 +279,29 @@ def automateInstagramActions(debuggingPort, videoPath=None, caption="Instagram s
                             EC.element_to_be_clickable((By.XPATH, "//*[text()='Share']"))
                         )
                         shareButton.click()
-                        print(f"{Fore.GREEN}Clicked Share button to post content")
+                        print(success("Clicked Share button to post content"))
                         
                         # Wait for post completion confirmation message (up to 1 minute)
                         try:
                             success_message = WebDriverWait(driver, 60).until(
                                 EC.presence_of_element_located((By.XPATH, "//h3[contains(text(), 'Your reel has been shared')]"))
                             )
-                            print(f"{Fore.GREEN}Post has been shared successfully - confirmation message detected")
+                            print(success("Post has been shared successfully - confirmation message detected"))
                         except Exception as e:
-                            print(f"{Fore.YELLOW}Warning: Could not detect share confirmation message: {e}")
+                            print(warning(f"Warning: Could not detect share confirmation message: {e}"))
                             # Continue anyway as the post might still have been successful
                     except Exception as e:
-                        print(f"{Fore.RED}Could not click Share button: {e}")
+                        print(error(f"Could not click Share button: {e}"))
                 
             except Exception as e:
-                print(f"{Fore.RED}Error: {e}")
+                print(error(f"Error: {e}"))
         
-        print(f"{Fore.GREEN}Automation completed")
+        print(success("Automation completed"))
         return True
         
     except Exception as e:
-        print(f"{Fore.RED}Error: {e}")
+        print(error(f"Error: {e}"))
+        logger.error(f"Error during Chrome process: {e}")
         return False
 
 def upload_to_instagram(word, caption):
@@ -336,13 +333,13 @@ def upload_to_instagram(word, caption):
         videoPath = os.path.join(videoDirPath, capitalizedWord + ".mp4")
         
         if not os.path.exists(videoPath):
-            print(f"{Fore.RED}Error: Video file {videoPath} not found")
+            print(error(f"Error: Video file {videoPath} not found"))
             logger.error(f"Video file {videoPath} not found")
             return False
         
         url = 'https://www.instagram.com/'
         
-        print(f"{Fore.CYAN}Starting upload process for {Fore.YELLOW}{capitalizedWord}{Fore.CYAN}...")
+        print(info(f"Starting upload process for {highlight(capitalizedWord)}..."))
         
         chromeArgs = [
             chromePath,
@@ -363,16 +360,16 @@ def upload_to_instagram(word, caption):
             result = automateInstagramActions(DEBUGGING_PORT, videoPath, caption)
             time.sleep(5)
             
-            print(f"{Fore.CYAN}Complete the process in the browser. Press Ctrl+C to close Chrome.")
+            print(info("Complete the process in the browser. Press Ctrl+C to close Chrome."))
             
-            print(f"\n{Fore.YELLOW}Closing Chrome...")
+            print(info("\nClosing Chrome..."))
             try:
                 chromeProcess.terminate()
                 chromeProcess.wait(timeout=5)
             except:
                 chromeProcess.kill()        
         except KeyboardInterrupt:
-            print(f"\n{Fore.YELLOW}Closing Chrome...")
+            print(info("\nClosing Chrome..."))
             try:
                 chromeProcess.terminate()
                 chromeProcess.wait(timeout=5)
@@ -380,7 +377,7 @@ def upload_to_instagram(word, caption):
                 chromeProcess.kill()
         
         except Exception as e:
-            print(f"{Fore.RED}Error: {e}")
+            print(error(f"Error: {e}"))
             logger.error(f"Error during Chrome process: {e}")
             return False
         

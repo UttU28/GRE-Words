@@ -3,6 +3,7 @@ import sqlite3
 import os
 import time
 from datetime import datetime
+from utils import error, info, success
 
 JSON_FILE = os.path.join("resources", "words_cleaned.json")
 DB_FILE = os.path.join("resources", "greWords.db")
@@ -51,7 +52,7 @@ def loadJsonData():
             data = json.load(f)
         return data
     except Exception as e:
-        print(f"Error loading JSON data: {e}")
+        print(error(f"Error loading JSON data: {e}"))
         return None
 
 def populateDatabase(conn, data):
@@ -96,22 +97,22 @@ def populateDatabase(conn, data):
             conn.commit()
             
     except Exception as e:
-        print(f"Error populating database: {e}")
+        print(error(f"Error populating database: {e}"))
         conn.rollback()
         return False
     
-    print(f"Database populated successfully.")
-    print(f"Imported {wordsCount} words and {clipsCount} clips.")
+    print(success("Database populated successfully."))
+    print(info(f"Imported {wordsCount} words and {clipsCount} clips."))
     return True
 
 def main():
     """Main function to convert JSON to SQLite"""
     startTime = time.time()
     
-    print(f"Converting JSON data from {JSON_FILE} to SQLite database {DB_FILE}")
+    print(info(f"Converting JSON data from {JSON_FILE} to SQLite database {DB_FILE}"))
     
     if not os.path.exists(JSON_FILE):
-        print(f"Error: JSON file {JSON_FILE} not found")
+        print(error(f"Error: JSON file {JSON_FILE} not found"))
         return
     
     conn = createDatabase()
@@ -121,17 +122,17 @@ def main():
         conn.close()
         return
     
-    success = populateDatabase(conn, data)
+    conversion_success = populateDatabase(conn, data)
     
     conn.close()
     
     endTime = time.time()
     executionTime = endTime - startTime
     
-    if success:
-        print(f"Conversion completed in {executionTime:.2f} seconds")
+    if conversion_success:
+        print(success(f"Conversion completed in {executionTime:.2f} seconds"))
     else:
-        print("Conversion failed")
+        print(error("Conversion failed"))
 
 if __name__ == "__main__":
     main() 

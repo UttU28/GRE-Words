@@ -2,29 +2,30 @@ import json
 import os
 import sys
 from collections import defaultdict
+from utils import error, info, success
 
 def clean_json(input_file=None, output_file=None):
     if input_file is None:
         input_file = os.path.join("resources", "greWords.json")
     
     if not os.path.exists(input_file):
-        print(f"Error: Input file '{input_file}' not found")
+        print(error(f"Error: Input file '{input_file}' not found"))
         return False
     
     if output_file is None:
         base, ext = os.path.splitext(input_file)
         output_file = f"{base}_cleaned{ext}"
     
-    print(f"Reading JSON file: {input_file}")
+    print(info(f"Reading JSON file: {input_file}"))
     
     try:
         with open(input_file, 'r', encoding='utf-8') as f:
             data = json.load(f)
     except json.JSONDecodeError as e:
-        print(f"Error parsing JSON: {e}")
+        print(error(f"Error parsing JSON: {e}"))
         return False
     except Exception as e:
-        print(f"Error reading file: {e}")
+        print(error(f"Error reading file: {e}"))
         return False
     
     word_count = 0
@@ -73,10 +74,10 @@ def clean_json(input_file=None, output_file=None):
     try:
         with open(output_file, 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=2)
-        print(f"Cleaned JSON saved to: {output_file}")
+        print(success(f"Cleaned JSON saved to: {output_file}"))
         return True
     except Exception as e:
-        print(f"Error writing output file: {e}")
+        print(error(f"Error writing output file: {e}"))
         return False
 
 if __name__ == "__main__":

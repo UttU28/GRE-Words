@@ -6,11 +6,19 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
+# Import utils for consistent error handling
+try:
+    from utils import error
+except ImportError:
+    # Fallback if utils is not available during initial setup
+    def error(text):
+        return f"ERROR: {text}"
+
 # Function to get env var with fallback
 def getEnvVar(varName, default=None, required=False):
     value = os.getenv(varName, default)
     if required and value is None:
-        print(f"Error: Environment variable {varName} is required but not set")
+        print(error(f"Environment variable {varName} is required but not set"))
         sys.exit(1)
     return value
 
@@ -70,7 +78,7 @@ def ensureDirsExist(quiet=False):
         try:
             os.makedirs(directory, exist_ok=True)
         except Exception as e:
-            print(f"Error creating directory {directory}: {e}")
+            print(error(f"Error creating directory {directory}: {e}"))
     
 
 def pathStr(path):

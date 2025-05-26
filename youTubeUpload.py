@@ -36,29 +36,42 @@ def get_authenticated_service():
     return build("youtube", "v3", credentials=creds)
 
 def generate_tags(word, caption):
-    """Generate relevant tags for the GRE word video"""
-    # Base tags for GRE content
-    base_tags = [
-        "GRE", "GREprep", "vocabulary", "learnenglish", "wordoftheday",
-        "englishvocabulary", "testprep", "education", "learning",
-        "englishwords", "studyenglish", "vocabularybuilding"
+    """Generate relevant tags for the GRE word video using the same tags as Instagram"""
+    # Extract hashtags from Instagram caption and convert to YouTube tags
+    # These are the same hashtags used in Instagram uploads for consistency
+    instagram_hashtags = [
+        "GREprep", "IELTSvocab", "wordoftheday", "englishwithstyle", 
+        "speaklikeanative", "studygram", "vocabularyboost", "learnenglish", 
+        "englishreels", "explorepage", "IELTSpreparation", "englishvocabulary", 
+        "spokenenglish", "studymotivation", "englishlearning", "dailyvocab", 
+        "englishpractice", "fluencygoals", "vocabchallenge", "englishtips", 
+        "educationreels", "englishgrammar", "ieltsvocab", "smartvocab"
     ]
     
     # Add the word itself
     word_tags = [word.lower(), word.upper()]
     
-    # Add content-specific tags
-    content_tags = [
-        "grewords", "vocabularytest", "englishlearning", "wordmeaning",
-        "definition", "pronunciation", "usage", "example", "sentence",
-        "gradschool", "university", "academic", "standardizedtest"
-    ]
+    # Combine Instagram hashtags with word tags
+    all_tags = word_tags + instagram_hashtags
     
-    # Combine all tags and remove duplicates
-    all_tags = list(set(base_tags + word_tags + content_tags))
+    # Remove duplicates and ensure we don't exceed YouTube's limits
+    unique_tags = list(dict.fromkeys(all_tags))  # Preserves order while removing duplicates
     
-    # YouTube allows max 500 characters for tags, so limit the number
-    return all_tags[:15]  # Limit to 15 tags to stay within character limit
+    # YouTube allows max 500 characters for tags, so we need to be careful
+    # Let's prioritize the most important tags and fit within character limit
+    final_tags = []
+    total_chars = 0
+    
+    for tag in unique_tags:
+        # Account for tag length plus comma and space
+        tag_length = len(tag) + 2
+        if total_chars + tag_length <= 480:  # Leave some buffer
+            final_tags.append(tag)
+            total_chars += tag_length
+        else:
+            break
+    
+    return final_tags
 
 def upload_video(youtube, video_file, word, caption):
     """Upload video to YouTube with GRE word content"""
@@ -66,11 +79,14 @@ def upload_video(youtube, video_file, word, caption):
     # Generate tags based on word and content
     tags = generate_tags(word, caption)
     
+    # Create the same hashtag string as used in Instagram
+    instagram_hashtags_string = "#GREprep #IELTSvocab #wordoftheday #englishwithstyle #speaklikeanative #studygram #vocabularyboost #learnenglish #englishreels #explorepage #IELTSpreparation #englishvocabulary #spokenenglish #studymotivation #englishlearning #dailyvocab #englishpractice #fluencygoals #vocabchallenge #englishtips #educationreels #englishgrammar #ieltsvocab #smartvocab"
+    
     # Create video metadata
     body = {
         "snippet": {
             "title": word.upper(),  # Just the word name as title
-            "description": f"{word.upper()}\n\n{caption}\n\n#GREprep #vocabulary #learnenglish #wordoftheday",
+            "description": f"{word.upper()}\n\n{caption}\n\n{instagram_hashtags_string}",
             "tags": tags,
             "categoryId": "27",  # Education category
             "defaultLanguage": "en",

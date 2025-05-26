@@ -21,6 +21,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
+from utils import error, warning, info
 from config import JSON_FILE, SCR_CHROME_DATA_DIR, DEBUGGING_PORT, pathStr, ensureDirsExist
 
 ensureDirsExist()
@@ -54,8 +55,8 @@ else:
                 sys.exit(1)
 
 if not os.path.exists(CHROME_PATH):
-    print(f"Error: Chrome executable not found at {CHROME_PATH}")
-    print("Please ensure Chrome is installed or provide the correct path in your .env file.")
+    print(error(f"Error: Chrome executable not found at {CHROME_PATH}"))
+    print(error("Please ensure Chrome is installed or provide the correct path in your .env file."))
     sys.exit(1)
 
 print(f"Chrome executable path: {CHROME_PATH}")
@@ -69,7 +70,7 @@ def load_json_data():
         print(f"JSON file not found at {pathStr(JSON_FILE)}. Creating a new one.")
         return {}
     except json.JSONDecodeError:
-        print(f"Error decoding JSON from {pathStr(JSON_FILE)}. Creating a new one.")
+        print(error(f"Error decoding JSON from {pathStr(JSON_FILE)}. Creating a new one."))
         return {}
 
 def save_json_data(data):
@@ -112,14 +113,14 @@ def cleanup_chrome(driver, chrome_process):
         if driver:
             driver.quit()
     except Exception as e:
-        print(f"Error quitting driver: {e}")
+        print(error(f"Error quitting driver: {e}"))
     
     try:
         if chrome_process:
             chrome_process.terminate()
             chrome_process.wait(timeout=5)
     except Exception as e:
-        print(f"Error terminating Chrome process: {e}")
+        print(error(f"Error terminating Chrome process: {e}"))
         try:
             if chrome_process:
                 chrome_process.kill()
@@ -220,7 +221,7 @@ def process_word(driver, word):
         return True
         
     except Exception as e:
-        print(f"Error processing word '{word}': {e}")
+        print(error(f"Error processing word '{word}': {e}"))
         return False
 
 def get_unsearched_words():
@@ -263,7 +264,7 @@ def main():
             # Check if we found any clips for this word
             if data[currentWord]["clipsFound"] == 0:
                 consecutive_no_clips += 1
-                print(f"Warning: No clips found for {consecutive_no_clips} consecutive words")
+                print(warning(f"Warning: No clips found for {consecutive_no_clips} consecutive words"))
                 if consecutive_no_clips >= 5:
                     print(f"Stopping script: No clips found for {consecutive_no_clips} consecutive words")
                     break

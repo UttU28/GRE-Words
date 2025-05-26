@@ -128,9 +128,9 @@ def processCompleteWord(word=None):
     
     wordId = wordRow['id']
     
-    print(f"\n{Fore.CYAN}{'='*60}{Style.RESET_ALL}")
+    print(f"\n{info('='*60)}")
     print(highlight(f"Starting complete processing for word: {word.upper()}"))
-    print(f"{Fore.CYAN}{'='*60}{Style.RESET_ALL}\n")
+    print(f"{info('='*60)}\n")
     
     print(highlight(f"\n--- STEP 1: Downloading videos for {word.upper()} ---"))
     downloadResult = downloadWordVideos(word)
@@ -210,10 +210,10 @@ def processCompleteWord(word=None):
     minutes = int(totalTime // 60)
     seconds = int(totalTime % 60)
     
-    print(f"\n{Fore.GREEN}{'='*60}{Style.RESET_ALL}")
+    print(f"\n{success('='*60)}")
     print(success(f"COMPLETE PROCESSING FOR {word.upper()} FINISHED SUCCESSFULLY!"))
     print(success(f"Total time: {minutes} minutes {seconds} seconds"))
-    print(f"{Fore.GREEN}{'='*60}{Style.RESET_ALL}\n")
+    print(f"{success('='*60)}\n")
     
     # Log process completion
     end_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
