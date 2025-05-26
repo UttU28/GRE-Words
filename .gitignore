@@ -6,3 +6,5 @@
 **/venv/*
 **/chromeData/*
 __pycache__/*
+client_secret.json
+token.pickle

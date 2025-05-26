@@ -3,19 +3,35 @@ import os
 import sys
 import subprocess
 import time
+import logging
+from datetime import datetime
+from colorama import init, Fore, Style
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from colorama import init, Fore, Style
+
+# Import common utilities
+from utils import success, error, info, warning, highlight
 from config import (
     INS_CHROME_DATA_DIR, DEBUGGING_PORT, CHROME_PATH as CONFIG_CHROME_PATH,
     FINAL_VIDEOS_DIR, pathStr, ensureDirsExist
 )
 
+# Initialize colorama
 init(autoreset=True)
+
+# Set up logging
+log_file = "instagram_upload.log"
+logging.basicConfig(
+    filename=log_file,
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+logger = logging.getLogger('instagram_uploader')
 
 # Path to the specific chromedriver
 CHROMEDRIVER_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 
@@ -291,66 +307,104 @@ def automateInstagramActions(debuggingPort, videoPath=None, caption="Instagram s
         print(f"{Fore.RED}Error: {e}")
         return False
 
-def main(word, caption):
-    ensureDirsExist()
+def upload_to_instagram(word, caption):
+    """
+    Upload a video to Instagram
     
-    chromePath = getChromePath()
-    userDataDir = pathStr(INS_CHROME_DATA_DIR)
+    Args:
+        word (str): The word being processed (used for video filename)
+        caption (str): The caption to use for the Instagram post
     
-    videoDirPath = pathStr(FINAL_VIDEOS_DIR)
-    capitalizedWord = word[0].upper() + word[1:]
-    videoPath = os.path.join(videoDirPath, capitalizedWord + ".mp4")
+    Returns:
+        bool: Whether the upload was successful
+    """
+    start_time = time.time()
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
-    if not os.path.exists(videoPath):
-        print(f"{Fore.RED}Error: Video file {videoPath} not found")
-        return
-    
-    url = 'https://www.instagram.com/'
-    
-    print(f"{Fore.CYAN}Starting upload process for {Fore.YELLOW}{capitalizedWord}{Fore.CYAN}...")
-    
-    chromeArgs = [
-        chromePath,
-        f"--remote-debugging-port={DEBUGGING_PORT}",
-        f"--user-data-dir={userDataDir}",
-        "--disable-notifications",
-        "--no-first-run",
-        "--no-default-browser-check",
-        "--disable-blink-features=AutomationControlled",
-        url
-    ]
+    print(highlight(f"\n=== Instagram Upload Started for {word.upper()} ==="))
+    logger.info(f"Starting Instagram upload for word: {word}")
+    logger.info(f"Caption: {caption}")
     
     try:
-        chromeProcess = subprocess.Popen(chromeArgs)
-        time.sleep(5)
+        ensureDirsExist()
         
-        automateInstagramActions(DEBUGGING_PORT, videoPath, caption)
-        time.sleep(5)
+        chromePath = getChromePath()
+        userDataDir = pathStr(INS_CHROME_DATA_DIR)
         
-        print(f"{Fore.CYAN}Complete the process in the browser. Press Ctrl+C to close Chrome.")
+        videoDirPath = pathStr(FINAL_VIDEOS_DIR)
+        capitalizedWord = word[0].upper() + word[1:]
+        videoPath = os.path.join(videoDirPath, capitalizedWord + ".mp4")
         
-        # chromeProcess.wait()
-        print(f"\n{Fore.YELLOW}Closing Chrome...")
+        if not os.path.exists(videoPath):
+            print(f"{Fore.RED}Error: Video file {videoPath} not found")
+            logger.error(f"Video file {videoPath} not found")
+            return False
+        
+        url = 'https://www.instagram.com/'
+        
+        print(f"{Fore.CYAN}Starting upload process for {Fore.YELLOW}{capitalizedWord}{Fore.CYAN}...")
+        
+        chromeArgs = [
+            chromePath,
+            f"--remote-debugging-port={DEBUGGING_PORT}",
+            f"--user-data-dir={userDataDir}",
+            "--disable-notifications",
+            "--no-first-run",
+            "--no-default-browser-check",
+            "--disable-blink-features=AutomationControlled",
+            url
+        ]
+        
         try:
-            chromeProcess.terminate()
-            chromeProcess.wait(timeout=5)
-        except:
-            chromeProcess.kill()        
-    except KeyboardInterrupt:
-        print(f"\n{Fore.YELLOW}Closing Chrome...")
-        try:
-            chromeProcess.terminate()
-            chromeProcess.wait(timeout=5)
-        except:
-            chromeProcess.kill()
+            chromeProcess = subprocess.Popen(chromeArgs)
+            time.sleep(5)
+            
+            # Call the Instagram automation function
+            result = automateInstagramActions(DEBUGGING_PORT, videoPath, caption)
+            time.sleep(5)
+            
+            print(f"{Fore.CYAN}Complete the process in the browser. Press Ctrl+C to close Chrome.")
+            
+            print(f"\n{Fore.YELLOW}Closing Chrome...")
+            try:
+                chromeProcess.terminate()
+                chromeProcess.wait(timeout=5)
+            except:
+                chromeProcess.kill()        
+        except KeyboardInterrupt:
+            print(f"\n{Fore.YELLOW}Closing Chrome...")
+            try:
+                chromeProcess.terminate()
+                chromeProcess.wait(timeout=5)
+            except:
+                chromeProcess.kill()
+        
+        except Exception as e:
+            print(f"{Fore.RED}Error: {e}")
+            logger.error(f"Error during Chrome process: {e}")
+            return False
+        
+        end_time = time.time()
+        duration = end_time - start_time
+        minutes = int(duration // 60)
+        seconds = int(duration % 60)
+        
+        if result:
+            print(success(f"Instagram upload completed successfully in {minutes}m {seconds}s"))
+            logger.info(f"Instagram upload successful for {word}. Duration: {minutes}m {seconds}s")
+            return True
+        else:
+            print(error(f"Instagram upload failed for {word}"))
+            logger.error(f"Instagram upload failed for {word}")
+            return False
     
     except Exception as e:
-        print(f"{Fore.RED}Error: {e}")
-    
-    print(f"{Fore.GREEN}Upload process completed")
+        print(error(f"Error during Instagram upload: {e}"))
+        logger.error(f"Error during Instagram upload: {e}")
+        return False
 
 if __name__ == "__main__":
-    word = "nuance"
-    caption = "Instagram said \"post daily\" — so here's me being obedient."
-    main(word, caption) 
-    
+    # Test the function
+    test_word = "example"
+    test_caption = "This is a test caption for Instagram."
+    upload_to_instagram(test_word, test_caption) 

@@ -3,15 +3,12 @@ import random
 import time
 import shutil
 import logging
-from datetime import datetime
-from colorama import init, Fore, Style
+from datetime import datetime, timedelta
 
+# Import common utilities
+from utils import success, error, info, warning, highlight, importFromFile
 from config import pathStr, ensureDirsExist, IMAGES_DIR, DOWNLOADED_VIDEOS_DIR, MERGED_VIDEOS_DIR
-import importlib.util
 from db_controller import db
-
-# Initialize colorama
-init(autoreset=True)
 
 # Set up logging
 log_file = "word_processing.log"
@@ -23,32 +20,21 @@ logging.basicConfig(
 )
 logger = logging.getLogger('word_processor')
 
-# Color formatting functions
-def success(text): return f"{Fore.GREEN}{text}{Style.RESET_ALL}"
-def error(text): return f"{Fore.RED}{text}{Style.RESET_ALL}"
-def info(text): return f"{Fore.CYAN}{text}{Style.RESET_ALL}"
-def warning(text): return f"{Fore.YELLOW}{text}{Style.RESET_ALL}"
-def highlight(text): return f"{Fore.MAGENTA}{Style.BRIGHT}{text}{Style.RESET_ALL}"
-
-def importFromFile(moduleName, filePath):
-    spec = importlib.util.spec_from_file_location(moduleName, filePath)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
 downloadsModule = importFromFile("downloadingVideos", "1_downloadingVideos.py")
 imagesModule = importFromFile("makeImages", "2_makeImages.py")
 addVideoModule = importFromFile("addVideoToImage", "3_addVideoToImage.py")
 introOutroModule = importFromFile("createIntroOutroVideos", "4_createIntroOutro.py")
 mergeModule = importFromFile("mergeAllOneByOne", "5_mergeAllOneByOne.py")
-uploadModule = importFromFile("uploadVideo", "6_uploadVideo.py")
+instagramUploadModule = importFromFile("instagramUpload", "instagramUpload.py")
+youtubeUploadModule = importFromFile("youTubeUpload", "youTubeUpload.py")
 
 downloadWordVideos = downloadsModule.downloadWordVideos
 makeImagesForWord = imagesModule.makeImagesForWord
 processWord = addVideoModule.processWord
 createIntroOutroVideos = introOutroModule.createIntroOutroVideos
 mergeWordVideos = mergeModule.mergeWordVideos
-uploadVideo = uploadModule.main
+upload_to_instagram = instagramUploadModule.upload_to_instagram
+upload_to_youtube = youtubeUploadModule.upload_to_youtube
 
 def selectRandomWord():
     """Select a random word from the database that hasn't been processed yet"""
@@ -188,17 +174,27 @@ def processCompleteWord(word=None):
     caption = f"{word.upper()} ~ ~ ~{fixed_caption}"
     uploadSuccess = False
     try:
-        uploadResult = uploadVideo(word, caption)
-        if uploadResult:
+        # Call Instagram upload function
+        instagramResult = upload_to_instagram(word, caption)
+        if instagramResult:
             print(success(f"Successfully uploaded video for {word} to Instagram"))
             uploadSuccess = True
             logger.info(f"Successfully uploaded video for {word} to Instagram")
         else:
             print(warning(f"Failed to upload video for {word} to Instagram"))
             logger.warning(f"Failed to upload video for {word} to Instagram")
+            
+        # Also try uploading to YouTube (currently just logs information)
+        youtubeResult = upload_to_youtube(word, caption)
+        if youtubeResult:
+            print(success(f"Successfully uploaded video for {word} to YouTube"))
+            logger.info(f"Successfully uploaded video for {word} to YouTube")
+        else:
+            print(warning(f"YouTube upload for {word} not implemented yet"))
+            logger.warning(f"YouTube upload for {word} not implemented yet")
     except Exception as e:
-        print(error(f"Error uploading video to Instagram: {e}"))
-        logger.error(f"Error uploading video to Instagram: {e}")
+        print(error(f"Error uploading video: {e}"))
+        logger.error(f"Error uploading video: {e}")
     
     # Update database to mark word as processed
     completionTime = time.strftime("%Y-%m-%d %H:%M:%S")
@@ -236,12 +232,13 @@ if __name__ == "__main__":
         print(info("Pattern: Process word -> 11hr wait -> Process word -> Repeat"))
         
         while True:
-            # Process first word
-            print(highlight("\n=== Processing first word in cycle ==="))
+            # Process a word
+            print(highlight("\n=== Processing word ==="))
             processCompleteWord()
             
             # Sleep for 11 hours
-            print(info(f"\nSleeping for 11 hours before next cycle..."))
+            print(info(f"\nSleeping for 11 hours before next word..."))
+            print(info(f"Next word will be processed at: {(datetime.now() + timedelta(hours=11)).strftime('%Y-%m-%d %H:%M:%S')}"))
             time.sleep(39600)  # 11 hours = 39600 seconds
             
     except KeyboardInterrupt:

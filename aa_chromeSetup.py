@@ -55,9 +55,10 @@ def main():
     print("Select which Chrome profile to use:")
     print("1. Scraping Profile (SCR)")
     print("2. Instagram Profile (INS)")
+    print("3. YouTube Profile (same as Instagram)")
     
     while True:
-        profile_choice = input("Enter your choice (1 or 2): ").strip()
+        profile_choice = input("Enter your choice (1, 2, or 3): ").strip()
         
         if profile_choice == "1":
             user_data_dir = pathStr(SCR_CHROME_DATA_DIR)
@@ -67,8 +68,12 @@ def main():
             user_data_dir = pathStr(INS_CHROME_DATA_DIR)
             profile_name = "Instagram"
             break
+        elif profile_choice == "3":
+            user_data_dir = pathStr(INS_CHROME_DATA_DIR)  # Use same profile as Instagram
+            profile_name = "YouTube (Instagram Profile)"
+            break
         else:
-            print("Invalid choice. Please enter 1 or 2.")
+            print("Invalid choice. Please enter 1, 2, or 3.")
     
     print(f"Using {profile_name} profile.")
     print(f"Chrome user data directory: {user_data_dir}")
@@ -80,8 +85,10 @@ def main():
         # Set default URL based on profile choice
         if profile_choice == "1":
             url = "https://www.playphrase.me/"
-        else:  # profile_choice == "2"
+        elif profile_choice == "2":
             url = "https://www.instagram.com/"
+        else:  # profile_choice == "3"
+            url = "https://studio.youtube.com/channel/UCHvf5d1izlR4MR786HJzoew"
     
     print(f"Opening Chrome to URL: {url}")
     print("=" * 80)
@@ -92,6 +99,9 @@ def main():
         print("3. Make sure you're logged in to https://www.playphrase.me/ if needed")
     elif profile_choice == "2":
         print("3. Make sure you're logged in to Instagram and any other required sites")
+    elif profile_choice == "3":
+        print("3. Make sure you're logged in to YouTube Studio and verify channel access")
+        print("4. Set up any YouTube upload preferences or settings")
     print("4. Configure any extensions or settings you want to persist")
     print("5. Keep the browser open as long as needed to complete setup")
     print("6. When done, you can close the browser manually")
