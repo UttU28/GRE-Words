@@ -171,7 +171,11 @@ def processCompleteWord(word=None):
     print(highlight(f"\n--- STEP 6: Uploading video to Instagram and YouTube for {word.upper()} ---"))
     
     # Get the meaning from the database
-    meaning = wordRow.get('meaning', '')
+    try:
+        meaning = wordRow['meaning'] if wordRow['meaning'] else ''
+    except (KeyError, TypeError):
+        meaning = ''
+    
     if not meaning:
         print(warning(f"No meaning found for {word} in database, using placeholder"))
         meaning = "a vocabulary word that enhances your English skills"

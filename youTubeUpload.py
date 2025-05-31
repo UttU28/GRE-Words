@@ -3,25 +3,41 @@ import os
 import sys
 import subprocess
 import time
+import logging
+from datetime import datetime
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
-from colorama import init, Fore, Style
+
+# Import common utilities
+from utils import success, error, info, warning, highlight
 from config import (
     INS_CHROME_DATA_DIR, DEBUGGING_PORT, CHROME_PATH as CONFIG_CHROME_PATH,
-    pathStr, FINAL_VIDEOS_DIR
+    FINAL_VIDEOS_DIR, pathStr, ensureDirsExist
 )
 
 # Only import pyautogui on Windows
 if os.name == "nt":
     import pyautogui
 
-# Initialize colorama
-init(autoreset=True)
+# Set up logging
+log_file = "youtube_upload.log"
+logging.basicConfig(
+    filename=log_file,
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+logger = logging.getLogger('youtube_uploader')
+
+# Path to the specific chromedriver (same as Instagram)
+CHROMEDRIVER_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 
+                               'resources', 'chromedriver')
 
 def getChromePath():
     if CONFIG_CHROME_PATH and os.path.exists(CONFIG_CHROME_PATH):
@@ -44,7 +60,7 @@ def getChromePath():
                 try:
                     chromePath = subprocess.check_output(["which", "chrome"], text=True).strip()
                 except subprocess.CalledProcessError:
-                    print(f"{Fore.RED}❌ Chrome not found")
+                    print(error("Chrome executable not found. Please install Chrome."))
                     sys.exit(1)
     
     return chromePath
@@ -54,24 +70,55 @@ def getVideoPath(word):
     videoPath = os.path.join(pathStr(FINAL_VIDEOS_DIR), capitalizedWord + ".mp4")
     
     if not os.path.exists(videoPath):
-        print(f"{Fore.RED}❌ Video not found: {capitalizedWord}.mp4")
+        print(error(f"❌ Video not found: {capitalizedWord}.mp4"))
         return None
     return videoPath
 
 def fillTitleAndDescription(driver, title, description):
     try:
-        print(f"{Fore.CYAN}📝 Setting title and description...")
+        print(info("📝 Setting title and description..."))
         
+        # Handle Title with robust typing like Instagram
         titleField = WebDriverWait(driver, 15).until(
             EC.element_to_be_clickable((By.CSS_SELECTOR, "#textbox[contenteditable='true'][role='textbox']"))
         )
         
         titleField.click()
-        titleField.send_keys(Keys.CTRL + "a")
-        titleField.send_keys(Keys.DELETE)
         time.sleep(0.5)
-        titleField.send_keys(title)
         
+        # Clear title field with multiple fallback methods
+        try:
+            titleField.send_keys(Keys.CONTROL + "a")
+            titleField.send_keys(Keys.DELETE)
+        except AttributeError:
+            # Fallback 1: Try using ActionChains for Ctrl+A
+            try:
+                actions = ActionChains(driver)
+                actions.key_down(Keys.CONTROL).send_keys("a").key_up(Keys.CONTROL).perform()
+                titleField.send_keys(Keys.DELETE)
+            except:
+                # Fallback 2: Use JavaScript to clear
+                driver.execute_script("arguments[0].innerText = ''", titleField)
+        
+        time.sleep(0.5)
+        
+        # Try chunked typing for title (like Instagram)
+        try:
+            chunk_size = 20
+            for i in range(0, len(title), chunk_size):
+                chunk = title[i:i+chunk_size]
+                titleField.send_keys(chunk)
+                time.sleep(0.3)  # Small pause between chunks
+        except Exception:
+            # Fallback: Use JavaScript to set title
+            try:
+                driver.execute_script("arguments[0].innerText = arguments[1]", titleField, title)
+            except Exception:
+                titleField.send_keys(title)  # Last resort
+        
+        print(success("✅ Title set"))
+        
+        # Handle Description with robust typing like Instagram
         descriptionSelectors = [
             "ytcp-social-suggestions-textbox[label='Description'] #textbox[contenteditable='true']",
             "#description-textarea #textbox[contenteditable='true']",
@@ -90,20 +137,77 @@ def fillTitleAndDescription(driver, title, description):
         
         if descriptionField:
             descriptionField.click()
-            descriptionField.send_keys(Keys.CTRL + "a")
-            descriptionField.send_keys(Keys.DELETE)
             time.sleep(0.5)
-            descriptionField.send_keys(description)
-            print(f"{Fore.GREEN}✅ Title and description set")
+            
+            # Clear description field with multiple fallback methods
+            try:
+                descriptionField.send_keys(Keys.CONTROL + "a")
+                descriptionField.send_keys(Keys.DELETE)
+            except AttributeError:
+                # Fallback 1: Try using ActionChains for Ctrl+A
+                try:
+                    actions = ActionChains(driver)
+                    actions.key_down(Keys.CONTROL).send_keys("a").key_up(Keys.CONTROL).perform()
+                    descriptionField.send_keys(Keys.DELETE)
+                except:
+                    # Fallback 2: Use JavaScript to clear
+                    driver.execute_script("arguments[0].innerText = ''", descriptionField)
+            
+            time.sleep(0.5)
+            
+            # Try chunked typing for description (like Instagram)
+            try:
+                chunk_size = 50
+                for i in range(0, len(description), chunk_size):
+                    chunk = description[i:i+chunk_size]
+                    descriptionField.send_keys(chunk)
+                    time.sleep(0.5)  # Small pause between chunks
+                print(success("✅ Description set"))
+            except Exception:
+                # Fallback 1: Try alternative selector
+                try:
+                    descriptionField = WebDriverWait(driver, 5).until(
+                        EC.element_to_be_clickable((By.XPATH, "//div[@contenteditable='true' and @aria-label]"))
+                    )
+                    descriptionField.click()
+                    time.sleep(0.5)
+                    
+                    # Try chunked typing again
+                    chunk_size = 50
+                    for i in range(0, len(description), chunk_size):
+                        chunk = description[i:i+chunk_size]
+                        descriptionField.send_keys(chunk)
+                        time.sleep(0.5)
+                    print(success("✅ Description set (alternative method)"))
+                except Exception:
+                    # Fallback 2: Use JavaScript to set description
+                    try:
+                        driver.execute_script("arguments[0].innerText = arguments[1]", descriptionField, description)
+                        print(success("✅ Description set (JavaScript method)"))
+                    except Exception:
+                        # Fallback 3: Try to set description in smaller chunks with JavaScript
+                        try:
+                            driver.execute_script("arguments[0].innerText = ''", descriptionField)
+                            chunk_size = 50
+                            for i in range(0, len(description), chunk_size):
+                                chunk = description[i:i+chunk_size]
+                                current = driver.execute_script("return arguments[0].innerText", descriptionField)
+                                driver.execute_script("arguments[0].innerText = arguments[1]", descriptionField, current + chunk)
+                                time.sleep(0.5)
+                            print(success("✅ Description set (JavaScript chunked method)"))
+                        except Exception:
+                            print(warning("⚠️ Could not set description"))
         else:
-            print(f"{Fore.YELLOW}⚠️ Description field not found")
+            print(warning("⚠️ Description field not found"))
+        
+        print(success("✅ Title and description configuration completed"))
         
     except Exception as e:
-        print(f"{Fore.RED}❌ Error setting title/description: {e}")
+        print(error(f"❌ Error setting title/description: {e}"))
 
 def selectFirstPlaylist(driver):
     try:
-        print(f"{Fore.CYAN}📁 Selecting playlist...")
+        print(info("📁 Selecting playlist..."))
         
         playlistSelectors = [
             "ytcp-dropdown-trigger[aria-label*='Select playlists']",
@@ -139,10 +243,10 @@ def selectFirstPlaylist(driver):
                     EC.element_to_be_clickable((By.CSS_SELECTOR, "ytcp-button.done-button"))
                 )
                 doneButton.click()
-                print(f"{Fore.GREEN}✅ Playlist selected")
+                print(success("✅ Playlist selected"))
                 
             except Exception:
-                print(f"{Fore.YELLOW}⚠️ Playlist selection failed")
+                print(warning("⚠️ Playlist selection failed"))
                 try:
                     closeButton = driver.find_element(By.CSS_SELECTOR, "ytcp-button.done-button")
                     closeButton.click()
@@ -150,24 +254,24 @@ def selectFirstPlaylist(driver):
                     pass
         
     except Exception as e:
-        print(f"{Fore.RED}❌ Playlist error: {e}")
+        print(error(f"❌ Playlist error: {e}"))
 
 def setNotMadeForKids(driver):
     try:
-        print(f"{Fore.CYAN}👶 Setting audience...")
+        print(info("👶 Setting audience..."))
         
         notForKidsRadio = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.CSS_SELECTOR, "tp-yt-paper-radio-button[name='VIDEO_MADE_FOR_KIDS_NOT_MFK']"))
         )
         notForKidsRadio.click()
-        print(f"{Fore.GREEN}✅ Set as not for kids")
+        print(success("✅ Set as not for kids"))
         
     except Exception as e:
-        print(f"{Fore.RED}❌ Audience setting error: {e}")
+        print(error(f"❌ Audience setting error: {e}"))
 
 def expandAdvancedOptions(driver):
     try:
-        print(f"{Fore.CYAN}🔽 Expanding options...")
+        print(info("🔽 Expanding options..."))
         
         showMoreSelectors = [
             "ytcp-button[aria-label*='Show advanced settings']",
@@ -193,29 +297,45 @@ def expandAdvancedOptions(driver):
         if showMoreButton:
             showMoreButton.click()
             time.sleep(2)
-            print(f"{Fore.GREEN}✅ Options expanded")
+            print(success("✅ Options expanded"))
         
     except Exception as e:
-        print(f"{Fore.RED}❌ Expand options error: {e}")
+        print(error(f"❌ Expand options error: {e}"))
 
 def addTags(driver, tags):
     try:
-        print(f"{Fore.CYAN}🏷️ Adding tags...")
+        print(info("🏷️ Adding tags..."))
         
         tagsInput = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.CSS_SELECTOR, "#text-input[aria-label='Tags']"))
         )
         tagsInput.click()
         time.sleep(0.5)
-        tagsInput.send_keys(tags)
-        print(f"{Fore.GREEN}✅ Tags added")
+        
+        # Try chunked typing for tags (like Instagram)
+        try:
+            chunk_size = 30
+            for i in range(0, len(tags), chunk_size):
+                chunk = tags[i:i+chunk_size]
+                tagsInput.send_keys(chunk)
+                time.sleep(0.3)  # Small pause between chunks
+            print(success("✅ Tags added"))
+        except Exception:
+            # Fallback: Use JavaScript to set tags
+            try:
+                driver.execute_script("arguments[0].value = arguments[1]", tagsInput, tags)
+                print(success("✅ Tags added (JavaScript method)"))
+            except Exception:
+                # Last resort: simple send_keys
+                tagsInput.send_keys(tags)
+                print(success("✅ Tags added (simple method)"))
         
     except Exception as e:
-        print(f"{Fore.RED}❌ Tags error: {e}")
+        print(error(f"❌ Tags error: {e}"))
 
 def setCategoryToEntertainment(driver):
     try:
-        print(f"{Fore.CYAN}🎭 Setting category...")
+        print(info("🎭 Setting category..."))
         
         categoryDropdown = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.CSS_SELECTOR, "#category ytcp-dropdown-trigger"))
@@ -245,28 +365,28 @@ def setCategoryToEntertainment(driver):
             )
         
         entertainmentOption.click()
-        print(f"{Fore.GREEN}✅ Category set to Entertainment")
+        print(success("✅ Category set to Entertainment"))
         
     except Exception as e:
-        print(f"{Fore.RED}❌ Category error: {e}")
+        print(error(f"❌ Category error: {e}"))
 
 def clickNextButton(driver):
     try:
-        print(f"{Fore.CYAN}➡️ Next step...")
+        print(info("➡️ Next step..."))
         
         nextButton = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.CSS_SELECTOR, "#next-button"))
         )
         nextButton.click()
         time.sleep(3)
-        print(f"{Fore.GREEN}✅ Proceeded")
+        print(success("✅ Proceeded"))
         
     except Exception as e:
-        print(f"{Fore.RED}❌ Next button error: {e}")
+        print(error(f"❌ Next button error: {e}"))
 
 def setPublicAndSave(driver):
     try:
-        print(f"{Fore.CYAN}🌍 Publishing...")
+        print(info("🌍 Publishing..."))
         
         publicRadio = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.CSS_SELECTOR, "tp-yt-paper-radio-button[name='PUBLIC']"))
@@ -278,29 +398,22 @@ def setPublicAndSave(driver):
             EC.element_to_be_clickable((By.CSS_SELECTOR, "#done-button"))
         )
         saveButton.click()
-        print(f"{Fore.GREEN}✅ Video published")
+        print(success("✅ Video published"))
         return True
         
     except Exception as e:
-        print(f"{Fore.RED}❌ Publishing error: {e}")
+        print(error(f"❌ Publishing error: {e}"))
         return False
     
 def handleFileUpload(driver, videoPath):
+    """Handle file upload for Windows using pyautogui"""
     try:
-        if os.name == "nt":
-            pyautogui.typewrite(videoPath, interval=0.05)
-            time.sleep(0.5)
-            pyautogui.press('enter')
-            print(f"{Fore.GREEN}✅ File selected (Windows)")
-        else:
-            time.sleep(3)
-            uploadInput = WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.XPATH, "//input[@type='file']"))
-            )
-            uploadInput.send_keys(videoPath)
-            print(f"{Fore.GREEN}✅ File selected (Ubuntu)")
+        pyautogui.typewrite(videoPath, interval=0.05)
+        time.sleep(0.5)
+        pyautogui.press('enter')
+        print(success("✅ File selected (Windows)"))
     except Exception as e:
-        print(f"{Fore.RED}❌ File upload error: {e}")
+        print(error(f"❌ File upload error: {e}"))
         raise
 
 def clickCreateAndUpload(driver, word):
@@ -315,29 +428,55 @@ def clickCreateAndUpload(driver, word):
         )
         uploadOption.click()
         
-        selectFilesButton = WebDriverWait(driver, 10).until(
-            EC.element_to_be_clickable((By.CSS_SELECTOR, "#select-files-button"))
-        )
-        selectFilesButton.click()
-        
         videoPath = getVideoPath(word)
         if videoPath:
-            time.sleep(2)
-            print(f"{Fore.CYAN}📁 Uploading {os.path.basename(videoPath)}...")
-            handleFileUpload(driver, videoPath)
+            print(info(f"📁 Uploading {os.path.basename(videoPath)}..."))
+            
+            if os.name == "nt":
+                # Windows: Click the select files button and use pyautogui
+                selectFilesButton = WebDriverWait(driver, 10).until(
+                    EC.element_to_be_clickable((By.CSS_SELECTOR, "#select-files-button"))
+                )
+                selectFilesButton.click()
+                time.sleep(2)
+                handleFileUpload(driver, videoPath)
+            else:
+                # Ubuntu: Find the hidden file input and send file path directly (like Instagram)
+                time.sleep(2)
+                try:
+                    uploadInput = WebDriverWait(driver, 10).until(
+                        EC.presence_of_element_located((By.XPATH, "//input[@type='file']"))
+                    )
+                    uploadInput.send_keys(videoPath)
+                    print(success(f"✅ File selected (Ubuntu method): {os.path.basename(videoPath)}"))
+                except Exception as e:
+                    print(error(f"Could not find file input to upload video: {e}"))
+                    raise
             
             WebDriverWait(driver, 30).until(
                 EC.presence_of_element_located((By.CSS_SELECTOR, "ytcp-video-metadata-editor"))
             )
-            print(f"{Fore.GREEN}✅ Upload started")
+            print(success("✅ Upload started"))
         
     except Exception as e:
-        print(f"{Fore.RED}❌ Upload initiation error: {e}")
+        print(error(f"❌ Upload initiation error: {e}"))
 
 def uploadToYoutube(word, caption):
+    start_time = time.time()
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
     try:
+        print(highlight(f"\n=== YouTube Upload Started for {word.upper()} ==="))
+        logger.info(f"Starting YouTube upload for word: {word}")
+        logger.info(f"Caption: {caption}")
+        
+        ensureDirsExist()
+        
         title = f"{word.upper()}"
-        description = caption
+        # Create the same hashtag string as used in Instagram
+        instagram_hashtags_string = "#GREprep #IELTSvocab #wordoftheday #englishwithstyle #speaklikeanative #studygram #vocabularyboost #learnenglish #englishreels #explorepage #IELTSpreparation #englishvocabulary #spokenenglish #studymotivation #englishlearning #dailyvocab #englishpractice #fluencygoals #vocabchallenge #englishtips #educationreels #englishgrammar #ieltsvocab #smartvocab"
+        
+        description = f"{word.upper()}\n\n{caption}\n\n{instagram_hashtags_string}"
         tags = "GRE, IELTS, vocabulary, english, learning, education, words, study, exam prep, english vocabulary"
         
         chromePath = getChromePath()
@@ -345,8 +484,8 @@ def uploadToYoutube(word, caption):
         userDataDir = pathStr(INS_CHROME_DATA_DIR)
         
         osName = "Windows" if os.name == "nt" else "Ubuntu"
-        print(f"{Fore.MAGENTA}🚀 YouTube Upload - {word.upper()} ({osName})")
-        print(f"{Fore.CYAN}{'='*50}")
+        print(highlight(f"🚀 YouTube Upload - {word.upper()} ({osName})"))
+        print(info("="*50))
         
         chromeArgs = [
             chromePath,
@@ -364,13 +503,16 @@ def uploadToYoutube(word, caption):
         
         chromeOptions = Options()
         chromeOptions.add_experimental_option("debuggerAddress", f"localhost:{DEBUGGING_PORT}")
-        driver = webdriver.Chrome(options=chromeOptions)
         
-        print(f"{Fore.GREEN}✅ Connected to Chrome ({osName})")
+        # Use the specific chromedriver (same as Instagram)
+        service = Service(executable_path=CHROMEDRIVER_PATH)
+        driver = webdriver.Chrome(service=service, options=chromeOptions)
+        
+        print(success(f"✅ Connected to Chrome ({osName})"))
         
         clickCreateAndUpload(driver, word)
         
-        print(f"{Fore.CYAN}📋 Configuring video...")
+        print(info("📋 Configuring video..."))
         fillTitleAndDescription(driver, title, description)
         selectFirstPlaylist(driver)
         setNotMadeForKids(driver)
@@ -378,7 +520,7 @@ def uploadToYoutube(word, caption):
         addTags(driver, tags)
         setCategoryToEntertainment(driver)
         
-        print(f"{Fore.CYAN}🔄 Processing...")
+        print(info("🔄 Processing..."))
         clickNextButton(driver)
         clickNextButton(driver)
         clickNextButton(driver)
@@ -388,31 +530,44 @@ def uploadToYoutube(word, caption):
         uploadSuccess = setPublicAndSave(driver)
         time.sleep(10)
         
-        print(f"{Fore.MAGENTA}{'='*50}")
+        print(info("="*50))
         if uploadSuccess:
-            print(f"{Fore.GREEN}🎉 YouTube Upload Complete!")
+            print(success("🎉 YouTube Upload Complete!"))
         else:
-            print(f"{Fore.RED}❌ Upload Failed")
-        print(f"{Fore.MAGENTA}{'='*50}")
+            print(error("❌ Upload Failed"))
+        print(info("="*50))
         
         # Close Chrome session
         try:
             driver.quit()
-            print(f"{Fore.CYAN}🔒 Closing Chrome session...")
+            print(info("🔒 Closing Chrome session..."))
             chromeProcess.terminate()
             chromeProcess.wait(timeout=5)
-            print(f"{Fore.GREEN}✅ Chrome session closed")
+            print(success("✅ Chrome session closed"))
         except Exception as e:
-            print(f"{Fore.YELLOW}⚠️ Error closing Chrome: {e}")
+            print(warning(f"⚠️ Error closing Chrome: {e}"))
             try:
                 chromeProcess.kill()
             except:
                 pass
         
-        return uploadSuccess
+        end_time = time.time()
+        duration = end_time - start_time
+        minutes = int(duration // 60)
+        seconds = int(duration % 60)
+        
+        if uploadSuccess:
+            print(success(f"YouTube upload completed successfully in {minutes}m {seconds}s"))
+            logger.info(f"YouTube upload successful for {word}. Duration: {minutes}m {seconds}s")
+            return True
+        else:
+            print(error(f"YouTube upload failed for {word}"))
+            logger.error(f"YouTube upload failed for {word}")
+            return False
         
     except Exception as e:
-        print(f"{Fore.RED}❌ YouTube upload error: {e}")
+        print(error(f"❌ YouTube upload error: {e}"))
+        logger.error(f"Error during YouTube upload: {e}")
         # Cleanup on error
         try:
             if 'driver' in locals():
@@ -430,11 +585,11 @@ def uploadToYoutube(word, caption):
 
 
 def main():
-    word = "Fallow"
-    caption = "FALLOW means allowing land to remain uncultivated for a period to restore its fertility."
+    word = "Balk"
+    caption = "BALK means to hesitate or refuse to proceed; to stop short and refuse to continue."
     
     result = uploadToYoutube(word, caption)
-    print(f"{Fore.GREEN if result else Fore.RED}{'✅ Success' if result else '❌ Failed'}")
+    print(success("✅ Success") if result else error("❌ Failed"))
 
 if __name__ == "__main__":
     main()
