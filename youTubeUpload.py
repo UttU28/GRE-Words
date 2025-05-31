@@ -1,200 +1,432 @@
-# Complete Python script to upload a video to YouTube using YouTube Data API v3
-# using OAuth 2.0 Installed App Flow with a service client secret JSON file
-
+#!/usr/bin/env python3
 import os
-import pickle
-from google_auth_oauthlib.flow import InstalledAppFlow
-from googleapiclient.discovery import build
-from googleapiclient.http import MediaFileUpload
-from google.auth.transport.requests import Request
+import sys
+import subprocess
+import time
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.action_chains import ActionChains
+from colorama import init, Fore, Style
+from config import (
+    INS_CHROME_DATA_DIR, DEBUGGING_PORT, CHROME_PATH as CONFIG_CHROME_PATH,
+    pathStr, FINAL_VIDEOS_DIR
+)
 
-# Import common utilities
-from utils import success, error, info, warning, highlight
-from config import FINAL_VIDEOS_DIR, pathStr, ensureDirsExist
+# Only import pyautogui on Windows
+if os.name == "nt":
+    import pyautogui
 
-# Constants
-SCOPES = ["https://www.googleapis.com/auth/youtube.upload"]
-CLIENT_SECRETS_FILE = "client_secret.json"  # Replace with your file path
-TOKEN_FILE = "token.pickle"
+# Initialize colorama
+init(autoreset=True)
 
-def get_authenticated_service():
-    """Get authenticated YouTube service"""
-    creds = None
-    if os.path.exists(TOKEN_FILE):
-        with open(TOKEN_FILE, 'rb') as token:
-            creds = pickle.load(token)
+def getChromePath():
+    if CONFIG_CHROME_PATH and os.path.exists(CONFIG_CHROME_PATH):
+        return CONFIG_CHROME_PATH
 
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file(CLIENT_SECRETS_FILE, SCOPES)
-            creds = flow.run_local_server(port=8080, open_browser=True)
-        with open(TOKEN_FILE, 'wb') as token:
-            pickle.dump(creds, token)
-
-    return build("youtube", "v3", credentials=creds)
-
-def generate_tags(word, caption):
-    """Generate relevant tags for the GRE word video using the same tags as Instagram"""
-    # Extract hashtags from Instagram caption and convert to YouTube tags
-    # These are the same hashtags used in Instagram uploads for consistency
-    instagram_hashtags = [
-        "GREprep", "IELTSvocab", "wordoftheday", "englishwithstyle", 
-        "speaklikeanative", "studygram", "vocabularyboost", "learnenglish", 
-        "englishreels", "explorepage", "IELTSpreparation", "englishvocabulary", 
-        "spokenenglish", "studymotivation", "englishlearning", "dailyvocab", 
-        "englishpractice", "fluencygoals", "vocabchallenge", "englishtips", 
-        "educationreels", "englishgrammar", "ieltsvocab", "smartvocab"
-    ]
-    
-    # Add the word itself
-    word_tags = [word.lower(), word.upper()]
-    
-    # Combine Instagram hashtags with word tags
-    all_tags = word_tags + instagram_hashtags
-    
-    # Remove duplicates and ensure we don't exceed YouTube's limits
-    unique_tags = list(dict.fromkeys(all_tags))  # Preserves order while removing duplicates
-    
-    # YouTube allows max 500 characters for tags, so we need to be careful
-    # Let's prioritize the most important tags and fit within character limit
-    final_tags = []
-    total_chars = 0
-    
-    for tag in unique_tags:
-        # Account for tag length plus comma and space
-        tag_length = len(tag) + 2
-        if total_chars + tag_length <= 480:  # Leave some buffer
-            final_tags.append(tag)
-            total_chars += tag_length
-        else:
-            break
-    
-    return final_tags
-
-def upload_video(youtube, video_file, word, caption):
-    """Upload video to YouTube with GRE word content"""
-    
-    # Generate tags based on word and content
-    tags = generate_tags(word, caption)
-    
-    # Create the same hashtag string as used in Instagram
-    instagram_hashtags_string = "#GREprep #IELTSvocab #wordoftheday #englishwithstyle #speaklikeanative #studygram #vocabularyboost #learnenglish #englishreels #explorepage #IELTSpreparation #englishvocabulary #spokenenglish #studymotivation #englishlearning #dailyvocab #englishpractice #fluencygoals #vocabchallenge #englishtips #educationreels #englishgrammar #ieltsvocab #smartvocab"
-    
-    # Create video metadata
-    body = {
-        "snippet": {
-            "title": word.upper(),  # Just the word name as title
-            "description": f"{word.upper()}\n\n{caption}\n\n{instagram_hashtags_string}",
-            "tags": tags,
-            "categoryId": "27",  # Education category
-            "defaultLanguage": "en",
-            "defaultAudioLanguage": "en"
-        },
-        "status": {
-            "privacyStatus": "private",  # Keep private as requested
-            "selfDeclaredMadeForKids": False,  # Not for kids
-            "embeddable": True,
-            "publicStatsViewable": True
-        }
-    }
-
-    print(info(f"Uploading video for word: {word.upper()}"))
-    print(info(f"Title: {word.upper()}"))
-    print(info(f"Tags: {', '.join(tags[:10])}..."))  # Show first 10 tags
-    
-    # Create media upload object
-    media = MediaFileUpload(video_file, mimetype="video/*", resumable=True)
-
-    # Create upload request
-    request = youtube.videos().insert(
-        part=",".join(body.keys()),
-        body=body,
-        media_body=media
-    )
-
-    # Execute upload with progress tracking
-    response = None
-    while response is None:
-        try:
-            status, response = request.next_chunk()
-            if status:
-                progress = int(status.progress() * 100)
-                print(info(f"Upload progress: {progress}%"))
-        except Exception as e:
-            print(error(f"Upload error: {e}"))
-            return False
-
-    if response:
-        video_id = response['id']
-        print(success("Upload Complete!"))
-        print(success(f"Video ID: {video_id}"))
-        print(success(f"Watch at: https://www.youtube.com/watch?v={video_id}"))
-        return True
+    if os.name == "nt":
+        chromePath = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+        if not os.path.exists(chromePath):
+            chromePath = "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"
     else:
-        print(error("Upload failed - no response received"))
+        chromePath = "/usr/bin/google-chrome"
+        if not os.path.exists(chromePath):
+            chromePath = "/usr/bin/google-chrome-stable"
+        if not os.path.exists(chromePath):
+            chromePath = "/snap/bin/chromium"
+        if not os.path.exists(chromePath):
+            try:
+                chromePath = subprocess.check_output(["which", "google-chrome"], text=True).strip()
+            except subprocess.CalledProcessError:
+                try:
+                    chromePath = subprocess.check_output(["which", "chrome"], text=True).strip()
+                except subprocess.CalledProcessError:
+                    print(f"{Fore.RED}❌ Chrome not found")
+                    sys.exit(1)
+    
+    return chromePath
+
+def getVideoPath(word):
+    capitalizedWord = word[0].upper() + word[1:]
+    videoPath = os.path.join(pathStr(FINAL_VIDEOS_DIR), capitalizedWord + ".mp4")
+    
+    if not os.path.exists(videoPath):
+        print(f"{Fore.RED}❌ Video not found: {capitalizedWord}.mp4")
+        return None
+    return videoPath
+
+def fillTitleAndDescription(driver, title, description):
+    try:
+        print(f"{Fore.CYAN}📝 Setting title and description...")
+        
+        titleField = WebDriverWait(driver, 15).until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, "#textbox[contenteditable='true'][role='textbox']"))
+        )
+        
+        titleField.click()
+        titleField.send_keys(Keys.CTRL + "a")
+        titleField.send_keys(Keys.DELETE)
+        time.sleep(0.5)
+        titleField.send_keys(title)
+        
+        descriptionSelectors = [
+            "ytcp-social-suggestions-textbox[label='Description'] #textbox[contenteditable='true']",
+            "#description-textarea #textbox[contenteditable='true']",
+            "div[aria-label*='Tell viewers about your video'][contenteditable='true']"
+        ]
+        
+        descriptionField = None
+        for selector in descriptionSelectors:
+            try:
+                descriptionField = WebDriverWait(driver, 5).until(
+                    EC.element_to_be_clickable((By.CSS_SELECTOR, selector))
+                )
+                break
+            except:
+                continue
+        
+        if descriptionField:
+            descriptionField.click()
+            descriptionField.send_keys(Keys.CTRL + "a")
+            descriptionField.send_keys(Keys.DELETE)
+            time.sleep(0.5)
+            descriptionField.send_keys(description)
+            print(f"{Fore.GREEN}✅ Title and description set")
+        else:
+            print(f"{Fore.YELLOW}⚠️ Description field not found")
+        
+    except Exception as e:
+        print(f"{Fore.RED}❌ Error setting title/description: {e}")
+
+def selectFirstPlaylist(driver):
+    try:
+        print(f"{Fore.CYAN}📁 Selecting playlist...")
+        
+        playlistSelectors = [
+            "ytcp-dropdown-trigger[aria-label*='Select playlists']",
+            "ytcp-dropdown-trigger[aria-label*='Select']",
+            "ytcp-text-dropdown-trigger"
+        ]
+        
+        playlistDropdown = None
+        for selector in playlistSelectors:
+            try:
+                playlistDropdown = WebDriverWait(driver, 5).until(
+                    EC.element_to_be_clickable((By.CSS_SELECTOR, selector))
+                )
+                break
+            except:
+                continue
+        
+        if playlistDropdown:
+            playlistDropdown.click()
+            time.sleep(2)
+            
+            try:
+                WebDriverWait(driver, 10).until(
+                    EC.presence_of_element_located((By.CSS_SELECTOR, "tp-yt-paper-dialog[aria-label='Choose playlists']"))
+                )
+                
+                firstCheckbox = WebDriverWait(driver, 10).until(
+                    EC.element_to_be_clickable((By.CSS_SELECTOR, "#checkbox-0, ytcp-checkbox-lit[id='checkbox-0']"))
+                )
+                firstCheckbox.click()
+                
+                doneButton = WebDriverWait(driver, 10).until(
+                    EC.element_to_be_clickable((By.CSS_SELECTOR, "ytcp-button.done-button"))
+                )
+                doneButton.click()
+                print(f"{Fore.GREEN}✅ Playlist selected")
+                
+            except Exception:
+                print(f"{Fore.YELLOW}⚠️ Playlist selection failed")
+                try:
+                    closeButton = driver.find_element(By.CSS_SELECTOR, "ytcp-button.done-button")
+                    closeButton.click()
+                except:
+                    pass
+        
+    except Exception as e:
+        print(f"{Fore.RED}❌ Playlist error: {e}")
+
+def setNotMadeForKids(driver):
+    try:
+        print(f"{Fore.CYAN}👶 Setting audience...")
+        
+        notForKidsRadio = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, "tp-yt-paper-radio-button[name='VIDEO_MADE_FOR_KIDS_NOT_MFK']"))
+        )
+        notForKidsRadio.click()
+        print(f"{Fore.GREEN}✅ Set as not for kids")
+        
+    except Exception as e:
+        print(f"{Fore.RED}❌ Audience setting error: {e}")
+
+def expandAdvancedOptions(driver):
+    try:
+        print(f"{Fore.CYAN}🔽 Expanding options...")
+        
+        showMoreSelectors = [
+            "ytcp-button[aria-label*='Show advanced settings']",
+            "#toggle-button"
+        ]
+        
+        showMoreButton = None
+        for selector in showMoreSelectors:
+            try:
+                if selector == "#toggle-button":
+                    showMoreButton = WebDriverWait(driver, 3).until(
+                        EC.element_to_be_clickable((By.CSS_SELECTOR, selector))
+                    )
+                else:
+                    xpathSelector = "//ytcp-button[.//div[contains(text(), 'Show more')]]"
+                    showMoreButton = WebDriverWait(driver, 3).until(
+                        EC.element_to_be_clickable((By.XPATH, xpathSelector))
+                    )
+                break
+            except:
+                continue
+        
+        if showMoreButton:
+            showMoreButton.click()
+            time.sleep(2)
+            print(f"{Fore.GREEN}✅ Options expanded")
+        
+    except Exception as e:
+        print(f"{Fore.RED}❌ Expand options error: {e}")
+
+def addTags(driver, tags):
+    try:
+        print(f"{Fore.CYAN}🏷️ Adding tags...")
+        
+        tagsInput = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, "#text-input[aria-label='Tags']"))
+        )
+        tagsInput.click()
+        time.sleep(0.5)
+        tagsInput.send_keys(tags)
+        print(f"{Fore.GREEN}✅ Tags added")
+        
+    except Exception as e:
+        print(f"{Fore.RED}❌ Tags error: {e}")
+
+def setCategoryToEntertainment(driver):
+    try:
+        print(f"{Fore.CYAN}🎭 Setting category...")
+        
+        categoryDropdown = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, "#category ytcp-dropdown-trigger"))
+        )
+        categoryDropdown.click()
+        time.sleep(2)
+        
+        entertainmentSelectors = [
+            "tp-yt-paper-item[test-id='CREATOR_VIDEO_CATEGORY_ENTERTAINMENT']",
+            "#text-item-3"
+        ]
+        
+        entertainmentOption = None
+        for selector in entertainmentSelectors:
+            try:
+                entertainmentOption = WebDriverWait(driver, 5).until(
+                    EC.element_to_be_clickable((By.CSS_SELECTOR, selector))
+                )
+                break
+            except:
+                continue
+        
+        if not entertainmentOption:
+            xpathSelector = "//tp-yt-paper-item[.//yt-formatted-string[text()='Entertainment']]"
+            entertainmentOption = WebDriverWait(driver, 5).until(
+                EC.element_to_be_clickable((By.XPATH, xpathSelector))
+            )
+        
+        entertainmentOption.click()
+        print(f"{Fore.GREEN}✅ Category set to Entertainment")
+        
+    except Exception as e:
+        print(f"{Fore.RED}❌ Category error: {e}")
+
+def clickNextButton(driver):
+    try:
+        print(f"{Fore.CYAN}➡️ Next step...")
+        
+        nextButton = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, "#next-button"))
+        )
+        nextButton.click()
+        time.sleep(3)
+        print(f"{Fore.GREEN}✅ Proceeded")
+        
+    except Exception as e:
+        print(f"{Fore.RED}❌ Next button error: {e}")
+
+def setPublicAndSave(driver):
+    try:
+        print(f"{Fore.CYAN}🌍 Publishing...")
+        
+        publicRadio = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, "tp-yt-paper-radio-button[name='PUBLIC']"))
+        )
+        publicRadio.click()
+        time.sleep(2)
+        
+        saveButton = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, "#done-button"))
+        )
+        saveButton.click()
+        print(f"{Fore.GREEN}✅ Video published")
+        
+    except Exception as e:
+        print(f"{Fore.RED}❌ Publishing error: {e}")
+
+def waitForUploadCompletion(driver):
+    try:
+        print(f"{Fore.CYAN}🔗 Waiting for completion...")
+        
+        shareDialog = WebDriverWait(driver, 30).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, "tp-yt-paper-dialog[aria-labelledby='dialog-title']"))
+        )
+        
+        shareUrlElement = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, "#share-url"))
+        )
+        
+        videoUrl = shareUrlElement.get_attribute("href")
+        print(f"{Fore.GREEN}🎉 Upload successful!")
+        return True
+        
+    except Exception as e:
+        print(f"{Fore.RED}❌ Upload completion error: {e}")
         return False
 
-def upload_to_youtube(word, caption, video_path=None):
-    """
-    Upload a video to YouTube using API
-    
-    Args:
-        word (str): The GRE word being processed
-        caption (str): The caption/description to use for the YouTube video
-        video_path (str, optional): The path to the video file. If None, will be determined from the word.
-    
-    Returns:
-        bool: Whether the upload was successful
-    """
-    
-    # Determine video path if not provided
-    if video_path is None:
-        ensureDirsExist()
-        videoDirPath = pathStr(FINAL_VIDEOS_DIR)
-        capitalizedWord = word[0].upper() + word[1:]
-        video_path = os.path.join(videoDirPath, capitalizedWord + ".mp4")
-    
-    print(highlight(f"\n=== YouTube API Upload Started for {word.upper()} ==="))
-    
-    # Check if video file exists
-    if not os.path.exists(video_path):
-        print(error(f"Video file {video_path} not found"))
-        return False
-    
-    # Check if client secrets file exists
-    if not os.path.exists(CLIENT_SECRETS_FILE):
-        print(error(f"Client secrets file {CLIENT_SECRETS_FILE} not found"))
-        print(warning("Please download your OAuth 2.0 credentials from Google Cloud Console"))
-        print(info("1. Go to https://console.cloud.google.com/"))
-        print(info("2. Enable YouTube Data API v3"))
-        print(info("3. Create OAuth 2.0 credentials"))
-        print(info("4. Download and save as 'client_secret.json'"))
-        return False
-    
+def handleFileUpload(driver, videoPath):
     try:
-        # Get authenticated YouTube service
-        print(info("Authenticating with YouTube API..."))
-        youtube = get_authenticated_service()
-        print(success("Authentication successful!"))
-        
-        # Upload the video
-        result = upload_video(youtube, video_path, word, caption)
-        
-        if result:
-            print(success(f"YouTube upload completed successfully for {word.upper()}!"))
-            return True
+        if os.name == "nt":
+            pyautogui.typewrite(videoPath, interval=0.05)
+            time.sleep(0.5)
+            pyautogui.press('enter')
+            print(f"{Fore.GREEN}✅ File selected (Windows)")
         else:
-            print(error(f"YouTube upload failed for {word.upper()}"))
-            return False
-            
+            time.sleep(3)
+            uploadInput = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, "//input[@type='file']"))
+            )
+            uploadInput.send_keys(videoPath)
+            print(f"{Fore.GREEN}✅ File selected (Ubuntu)")
     except Exception as e:
-        print(error(f"Error during YouTube upload: {e}"))
+        print(f"{Fore.RED}❌ File upload error: {e}")
+        raise
+
+def clickCreateAndUpload(driver, word):
+    try:
+        createButton = WebDriverWait(driver, 20).until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, "ytcp-button#create-icon"))
+        )
+        createButton.click()
+        
+        uploadOption = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, "tp-yt-paper-item[test-id='upload-beta']"))
+        )
+        uploadOption.click()
+        
+        selectFilesButton = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, "#select-files-button"))
+        )
+        selectFilesButton.click()
+        
+        videoPath = getVideoPath(word)
+        if videoPath:
+            time.sleep(2)
+            print(f"{Fore.CYAN}📁 Uploading {os.path.basename(videoPath)}...")
+            handleFileUpload(driver, videoPath)
+            
+            WebDriverWait(driver, 30).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, "ytcp-video-metadata-editor"))
+            )
+            print(f"{Fore.GREEN}✅ Upload started")
+        
+    except Exception as e:
+        print(f"{Fore.RED}❌ Upload initiation error: {e}")
+
+def uploadToYoutube(word, caption):
+    try:
+        title = f"{word.upper()}"
+        description = caption
+        tags = "GRE, IELTS, vocabulary, english, learning, education, words, study, exam prep, english vocabulary"
+        
+        chromePath = getChromePath()
+        url = 'https://studio.youtube.com/channel/UCHvf5d1izlR4MR786HJzoew'
+        userDataDir = pathStr(INS_CHROME_DATA_DIR)
+        
+        osName = "Windows" if os.name == "nt" else "Ubuntu"
+        print(f"{Fore.MAGENTA}🚀 YouTube Upload - {word.upper()} ({osName})")
+        print(f"{Fore.CYAN}{'='*50}")
+        
+        chromeArgs = [
+            chromePath,
+            f"--remote-debugging-port={DEBUGGING_PORT}",
+            f"--user-data-dir={userDataDir}",
+            "--disable-notifications",
+            "--no-first-run",
+            "--no-default-browser-check",
+            "--disable-blink-features=AutomationControlled",
+            url
+        ]
+        
+        chromeProcess = subprocess.Popen(chromeArgs)
+        time.sleep(2)
+        
+        chromeOptions = Options()
+        chromeOptions.add_experimental_option("debuggerAddress", f"localhost:{DEBUGGING_PORT}")
+        driver = webdriver.Chrome(options=chromeOptions)
+        
+        print(f"{Fore.GREEN}✅ Connected to Chrome ({osName})")
+        
+        clickCreateAndUpload(driver, word)
+        
+        print(f"{Fore.CYAN}📋 Configuring video...")
+        fillTitleAndDescription(driver, title, description)
+        selectFirstPlaylist(driver)
+        setNotMadeForKids(driver)
+        expandAdvancedOptions(driver)
+        addTags(driver, tags)
+        setCategoryToEntertainment(driver)
+        
+        print(f"{Fore.CYAN}🔄 Processing...")
+        clickNextButton(driver)
+        clickNextButton(driver)
+        clickNextButton(driver)
+        
+        time.sleep(3)
+        setPublicAndSave(driver)
+        
+        uploadSuccess = waitForUploadCompletion(driver)
+        
+        print(f"{Fore.MAGENTA}{'='*50}")
+        if uploadSuccess:
+            print(f"{Fore.GREEN}🎉 YouTube Upload Complete!")
+        else:
+            print(f"{Fore.RED}❌ Upload Failed")
+        print(f"{Fore.YELLOW}🌐 Browser open for verification")
+        print(f"{Fore.MAGENTA}{'='*50}")
+        
+        return uploadSuccess
+        
+    except Exception as e:
+        print(f"{Fore.RED}❌ YouTube upload error: {e}")
         return False
+
+
+def main():
+    word = "Fallow"
+    caption = "FALLOW means allowing land to remain uncultivated for a period to restore its fertility."
+    
+    result = uploadToYoutube(word, caption)
+    print(f"{Fore.GREEN if result else Fore.RED}{'✅ Success' if result else '❌ Failed'}")
 
 if __name__ == "__main__":
-    # Test the function
-    test_word = "Balk"
-    test_caption = "To hesitate or refuse to proceed. When faced with the difficult decision, she began to balk at the idea of moving to a new city."
-    upload_to_youtube(test_word, test_caption)
+    main()

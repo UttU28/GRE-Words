@@ -33,8 +33,8 @@ makeImagesForWord = imagesModule.makeImagesForWord
 processWord = addVideoModule.processWord
 createIntroOutroVideos = introOutroModule.createIntroOutroVideos
 mergeWordVideos = mergeModule.mergeWordVideos
-upload_to_instagram = instagramUploadModule.upload_to_instagram
-upload_to_youtube = youtubeUploadModule.upload_to_youtube
+uploadToInstagram = instagramUploadModule.upload_to_instagram
+uploadToYoutube = youtubeUploadModule.uploadToYoutube
 
 def selectRandomWord():
     """Select a random word from the database that hasn't been processed yet"""
@@ -168,14 +168,35 @@ def processCompleteWord(word=None):
         return False
     
     # Upload the final video to Instagram
-    print(highlight(f"\n--- STEP 6: Uploading video to Instagram for {word.upper()} ---"))
-    # Fixed caption with duplicate hashtags removed
+    print(highlight(f"\n--- STEP 6: Uploading video to Instagram and YouTube for {word.upper()} ---"))
+    
+    # Get the meaning from the database
+    meaning = wordRow.get('meaning', '')
+    if not meaning:
+        print(warning(f"No meaning found for {word} in database, using placeholder"))
+        meaning = "a vocabulary word that enhances your English skills"
+    
+    # Create caption with meaning
     fixed_caption = """POV: You just unlocked a word that 99% still misuse  | If you're prepping for GRE, IELTS, or just wanna sound intellectually dangerous — SAVE THIS.  | Speak smarter, write sharper, and flex that vocab in style | Tag your study buddy | #GREprep #IELTSvocab #wordoftheday #englishwithstyle #speaklikeanative #studygram #vocabularyboost #learnenglish #englishreels #explorepage #IELTSpreparation #englishvocabulary #spokenenglish #studymotivation #englishlearning #dailyvocab #englishpractice #fluencygoals #vocabchallenge #englishtips #educationreels #englishgrammar #ieltsvocab #smartvocab"""
-    caption = f"{word.upper()} ~ ~ ~{fixed_caption}"
+    caption = f"{word.upper()} means {meaning} ~ ~ ~ {fixed_caption}"
+    
     uploadSuccess = False
+    
     try:
-        # Call Instagram upload function
-        instagramResult = upload_to_instagram(word, caption)
+        # Upload to YouTube
+        print(highlight(f"\n--- Uploading to YouTube for {word.upper()} ---"))
+        youtubeResult = uploadToYoutube(word, caption)
+        if youtubeResult:
+            print(success(f"Successfully uploaded video for {word} to YouTube"))
+            logger.info(f"Successfully uploaded video for {word} to YouTube")
+            uploadSuccess = True
+        else:
+            print(warning(f"Failed to upload video for {word} to YouTube"))
+            logger.warning(f"Failed to upload video for {word} to YouTube")
+            
+        # Upload to Instagram
+        print(highlight(f"\n--- Uploading to Instagram for {word.upper()} ---"))
+        instagramResult = uploadToInstagram(word, caption)
         if instagramResult:
             print(success(f"Successfully uploaded video for {word} to Instagram"))
             uploadSuccess = True
@@ -184,14 +205,7 @@ def processCompleteWord(word=None):
             print(warning(f"Failed to upload video for {word} to Instagram"))
             logger.warning(f"Failed to upload video for {word} to Instagram")
             
-        # Also try uploading to YouTube (currently just logs information)
-        youtubeResult = upload_to_youtube(word, caption)
-        if youtubeResult:
-            print(success(f"Successfully uploaded video for {word} to YouTube"))
-            logger.info(f"Successfully uploaded video for {word} to YouTube")
-        else:
-            print(warning(f"YouTube upload for {word} not implemented yet"))
-            logger.warning(f"YouTube upload for {word} not implemented yet")
+            
     except Exception as e:
         print(error(f"Error uploading video: {e}"))
         logger.error(f"Error uploading video: {e}")
