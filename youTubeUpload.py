@@ -411,13 +411,39 @@ def uploadToYoutube(word, caption):
             print(f"{Fore.GREEN}🎉 YouTube Upload Complete!")
         else:
             print(f"{Fore.RED}❌ Upload Failed")
-        print(f"{Fore.YELLOW}🌐 Browser open for verification")
         print(f"{Fore.MAGENTA}{'='*50}")
+        
+        # Close Chrome session
+        try:
+            driver.quit()
+            print(f"{Fore.CYAN}🔒 Closing Chrome session...")
+            chromeProcess.terminate()
+            chromeProcess.wait(timeout=5)
+            print(f"{Fore.GREEN}✅ Chrome session closed")
+        except Exception as e:
+            print(f"{Fore.YELLOW}⚠️ Error closing Chrome: {e}")
+            try:
+                chromeProcess.kill()
+            except:
+                pass
         
         return uploadSuccess
         
     except Exception as e:
         print(f"{Fore.RED}❌ YouTube upload error: {e}")
+        # Cleanup on error
+        try:
+            if 'driver' in locals():
+                driver.quit()
+            if 'chromeProcess' in locals():
+                chromeProcess.terminate()
+                chromeProcess.wait(timeout=5)
+        except:
+            try:
+                if 'chromeProcess' in locals():
+                    chromeProcess.kill()
+            except:
+                pass
         return False
 
 
