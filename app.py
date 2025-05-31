@@ -33,7 +33,7 @@ makeImagesForWord = imagesModule.makeImagesForWord
 processWord = addVideoModule.processWord
 createIntroOutroVideos = introOutroModule.createIntroOutroVideos
 mergeWordVideos = mergeModule.mergeWordVideos
-uploadToInstagram = instagramUploadModule.upload_to_instagram
+uploadToInstagram = instagramUploadModule.uploadToInstagram
 uploadToYoutube = youtubeUploadModule.uploadToYoutube
 
 def selectRandomWord():
@@ -197,7 +197,7 @@ def processCompleteWord(word=None):
         else:
             print(warning(f"Failed to upload video for {word} to YouTube"))
             logger.warning(f"Failed to upload video for {word} to YouTube")
-            
+
         # Upload to Instagram
         print(highlight(f"\n--- Uploading to Instagram for {word.upper()} ---"))
         instagramResult = uploadToInstagram(word, caption)

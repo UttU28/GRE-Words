@@ -50,43 +50,42 @@ else:
             try:
                 CHROME_PATH = subprocess.check_output(["which", "chrome"], text=True).strip()
             except subprocess.CalledProcessError:
-                print("Chrome executable not found. Please install Chrome or specify its path.")
-                print("You can set the CHROME_PATH in the .env file.")
+                print("❌ Chrome executable not found. Please install Chrome or specify its path.")
+                print("💡 You can set the CHROME_PATH in the .env file.")
                 sys.exit(1)
 
 if not os.path.exists(CHROME_PATH):
-    print(error(f"Error: Chrome executable not found at {CHROME_PATH}"))
-    print(error("Please ensure Chrome is installed or provide the correct path in your .env file."))
+    print(error(f"❌ Chrome executable not found at {CHROME_PATH}"))
+    print(error("💡 Please ensure Chrome is installed or provide the correct path in your .env file."))
     sys.exit(1)
 
-print(f"Chrome executable path: {CHROME_PATH}")
+print(f"🔍 Chrome executable: {CHROME_PATH}")
 
-def load_json_data():
+def loadJsonData():
     """Load the JSON data from file"""
     try:
         with open(pathStr(JSON_FILE), "r") as file:
             return json.load(file)
     except FileNotFoundError:
-        print(f"JSON file not found at {pathStr(JSON_FILE)}. Creating a new one.")
+        print(f"📄 JSON file not found at {pathStr(JSON_FILE)}. Creating a new one.")
         return {}
     except json.JSONDecodeError:
-        print(error(f"Error decoding JSON from {pathStr(JSON_FILE)}. Creating a new one."))
+        print(error(f"❌ Error decoding JSON from {pathStr(JSON_FILE)}. Creating a new one."))
         return {}
 
-def save_json_data(data):
+def saveJsonData(data):
     """Save the JSON data to file"""
     with open(pathStr(JSON_FILE), "w") as file:
         json.dump(data, file, indent=2)
-    print("Data saved to JSON file")
+    print("💾 Data saved to JSON file")
 
-# Load the JSON data
-data = load_json_data()
+data = loadJsonData()
 
-def start_chrome_session():
+def startChromeSession():
     """Start Chrome browser and connect to it with Selenium"""
-    print("Starting Chrome browser...")
+    print("🚀 Starting Chrome browser...")
     
-    chrome_process = subprocess.Popen([
+    chromeProcess = subprocess.Popen([
         CHROME_PATH,
         f"--remote-debugging-port={DEBUGGING_PORT}",
         f"--user-data-dir={USER_DATA_DIR}",
@@ -103,35 +102,34 @@ def start_chrome_session():
     
     driver = webdriver.Chrome(options=options)
     
-    return driver, chrome_process
+    return driver, chromeProcess
 
-def cleanup_chrome(driver, chrome_process):
+def cleanupChrome(driver, chromeProcess):
     """Close Chrome browser and clean up processes"""
-    print("Cleaning up Chrome session on port", DEBUGGING_PORT)
+    print(f"🧹 Cleaning up Chrome session on port {DEBUGGING_PORT}")
     
     try:
         if driver:
             driver.quit()
     except Exception as e:
-        print(error(f"Error quitting driver: {e}"))
+        print(error(f"❌ Error quitting driver: {e}"))
     
     try:
-        if chrome_process:
-            chrome_process.terminate()
-            chrome_process.wait(timeout=5)
+        if chromeProcess:
+            chromeProcess.terminate()
+            chromeProcess.wait(timeout=5)
     except Exception as e:
-        print(error(f"Error terminating Chrome process: {e}"))
+        print(error(f"❌ Error terminating Chrome process: {e}"))
         try:
-            if chrome_process:
-                chrome_process.kill()
+            if chromeProcess:
+                chromeProcess.kill()
         except:
             pass
 
-def process_word(driver, word):
+def processWord(driver, word):
     """Process a single word and collect its clips"""
-    print(f"Processing word: {word}")
+    print(f"🎯 Processing word: {word}")
     
-    # Ensure the word exists in the data structure
     if word not in data:
         data[word] = {
             "searched": False,
@@ -150,12 +148,12 @@ def process_word(driver, word):
         actions = ActionChains(driver)
         
         for pos in range(10):
-            print(f"Processing clip position {pos}")
+            print(f"  📹 Processing clip position {pos}")
             
             try:
                 sleep(2)
                 
-                current_url = driver.current_url
+                currentUrl = driver.current_url
                 
                 element = WebDriverWait(driver, 10).until(
                     EC.presence_of_element_located((By.CLASS_NAME, "video-player-container"))
@@ -182,10 +180,9 @@ def process_word(driver, word):
                     "videoInfo": videoInfo
                 }
                 
-                print(f"  Successfully saved clip {currentIndex}")
+                print(f"    ✅ Saved clip {currentIndex}")
                 
-                # Save progress after each clip
-                save_json_data(data)
+                saveJsonData(data)
                 
                 if pos < 9:
                     element.click()
@@ -193,98 +190,95 @@ def process_word(driver, word):
                     actions.send_keys(Keys.ARROW_DOWN).perform()
                     sleep(2)
                     
-                    new_url = driver.current_url
-                    if current_url == new_url:
-                        print("  No more clips available (position didn't change)")
+                    newUrl = driver.current_url
+                    if currentUrl == newUrl:
+                        print("    ⏹️  No more clips available")
                         break
                     
                     try:
-                        new_video = WebDriverWait(driver, 5).until(
+                        newVideo = WebDriverWait(driver, 5).until(
                             EC.presence_of_element_located((By.TAG_NAME, "video"))
                         )
-                        new_url = new_video.get_attribute("src")
-                        if new_url == videoURL:
-                            print("  No new video loaded, likely at the end of available clips")
+                        newVideoUrl = newVideo.get_attribute("src")
+                        if newVideoUrl == videoURL:
+                            print("    ⏹️  End of available clips")
                             break
                     except Exception as e:
-                        print(f"  Could not verify new video loaded: {e}")
+                        print(f"    ⚠️  Could not verify new video: {e}")
                         break
                 
             except Exception as e:
-                print(f"  Error processing clip at position {pos}: {e}")
+                print(f"    ❌ Error at position {pos}: {e}")
                 break
         
         data[word]["searched"] = True
         data[word]["clipsFound"] = len(data[word]["clipData"])
         
-        print(f"Completed processing '{word}'. Found {data[word]['clipsFound']} clips.")
+        print(f"✅ Completed '{word}' - Found {data[word]['clipsFound']} clips")
         return True
         
     except Exception as e:
-        print(error(f"Error processing word '{word}': {e}"))
+        print(error(f"❌ Error processing '{word}': {e}"))
         return False
 
-def get_unsearched_words():
+def getUnsearchedWords():
     """Get a list of words that haven't been searched yet"""
     return [word for word, wordData in data.items() if not wordData.get("searched", False)]
 
 def main():
-    # Initialize driver and chrome_process as None to avoid NameError in finally block
     driver = None
-    chrome_process = None
+    chromeProcess = None
 
     try:
-        driver, chrome_process = start_chrome_session()
+        driver, chromeProcess = startChromeSession()
         driver.maximize_window()
         
         driver.get("https://www.google.com")
         sleep(2)
         
-        words_processed = 0
-        consecutive_no_clips = 0  # Counter for consecutive words with no clips
+        wordsProcessed = 0
+        consecutiveNoClips = 0
         
-        unsearched_words = get_unsearched_words()
+        unsearchedWords = getUnsearchedWords()
         
-        if not unsearched_words:
-            print("No unsearched words found in the JSON data. Please add words to search.")
+        if not unsearchedWords:
+            print("📭 No unsearched words found. Please add words to search.")
             return
             
-        print(f"Found {len(unsearched_words)} unsearched words.")
+        print(f"🎯 Found {len(unsearchedWords)} unsearched words")
         
-        for currentWord in unsearched_words:
-            print(f"\n{'='*50}\nProcessing word #{words_processed+1}: {currentWord}\n{'='*50}")
+        for currentWord in unsearchedWords:
+            print(f"\n{'='*50}\n🔍 Word #{wordsProcessed+1}: {currentWord}\n{'='*50}")
             
-            success = process_word(driver, currentWord)
-            words_processed += 1
+            success = processWord(driver, currentWord)
+            wordsProcessed += 1
             
-            save_json_data(data)
+            saveJsonData(data)
             
-            print(f"Data saved for '{currentWord}'")
+            print(f"💾 Data saved for '{currentWord}'")
             
-            # Check if we found any clips for this word
             if data[currentWord]["clipsFound"] == 0:
-                consecutive_no_clips += 1
-                print(warning(f"Warning: No clips found for {consecutive_no_clips} consecutive words"))
-                if consecutive_no_clips >= 5:
-                    print(f"Stopping script: No clips found for {consecutive_no_clips} consecutive words")
+                consecutiveNoClips += 1
+                print(warning(f"⚠️  No clips found for {consecutiveNoClips} consecutive words"))
+                if consecutiveNoClips >= 5:
+                    print(f"🛑 Stopping: No clips found for {consecutiveNoClips} consecutive words")
                     break
             else:
-                # Reset counter if we found clips
-                consecutive_no_clips = 0
+                consecutiveNoClips = 0
             
-            print("Navigating to Google to reset for next word...")
+            print("🔄 Resetting for next word...")
             driver.get("https://www.google.com")
             sleep(2)
             
-        print(f"Script completed. Processed {words_processed} words.")
+        print(f"🎉 Script completed! Processed {wordsProcessed} words")
 
     except Exception as e:
-        print(f"Unhandled error: {e}")
+        print(f"❌ Unhandled error: {e}")
         traceback.print_exc()
         
     finally:
-        save_json_data(data)
-        cleanup_chrome(driver, chrome_process)
+        saveJsonData(data)
+        cleanupChrome(driver, chromeProcess)
 
 if __name__ == "__main__":
     main()

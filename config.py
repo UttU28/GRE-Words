@@ -57,6 +57,7 @@ PDF_FILE = Path(getEnvVar('PDF_FILE', os.path.join(RESOURCES_DIR, 'wordList.pdf'
 # Chrome Configuration
 DEBUGGING_PORT = getEnvVar('DEBUGGING_PORT', '9004')
 CHROME_PATH = getEnvVar('CHROME_PATH', None)
+YOUTUBE_CHANNEL_ID = getEnvVar('YOUTUBE_CHANNEL_ID', None)
 
 # List of all directories that need to be created
 ALL_DIRECTORIES = [

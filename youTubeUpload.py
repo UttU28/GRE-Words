@@ -18,7 +18,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 from utils import success, error, info, warning, highlight
 from config import (
     INS_CHROME_DATA_DIR, DEBUGGING_PORT, CHROME_PATH as CONFIG_CHROME_PATH,
-    FINAL_VIDEOS_DIR, pathStr, ensureDirsExist
+    FINAL_VIDEOS_DIR, YOUTUBE_CHANNEL_ID, pathStr, ensureDirsExist
 )
 
 # Only import pyautogui on Windows
@@ -480,7 +480,10 @@ def uploadToYoutube(word, caption):
         tags = "GRE, IELTS, vocabulary, english, learning, education, words, study, exam prep, english vocabulary"
         
         chromePath = getChromePath()
-        url = 'https://studio.youtube.com/channel/UCHvf5d1izlR4MR786HJzoew'
+        # Get the YouTube Channel ID from the .env file, I have added it to the .env file
+        channel_id = YOUTUBE_CHANNEL_ID
+
+        url = f'https://studio.youtube.com/channel/{channel_id}'
         userDataDir = pathStr(INS_CHROME_DATA_DIR)
         
         osName = "Windows" if os.name == "nt" else "Ubuntu"

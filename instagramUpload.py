@@ -304,7 +304,7 @@ def automateInstagramActions(debuggingPort, videoPath=None, caption="Instagram s
         logger.error(f"Error during Chrome process: {e}")
         return False
 
-def upload_to_instagram(word, caption):
+def uploadToInstagram(word, caption):
     """
     Upload a video to Instagram
     
@@ -404,4 +404,4 @@ if __name__ == "__main__":
     # Test the function
     test_word = "Balk"
     test_caption = "This is a test caption for Instagram."
-    upload_to_instagram(test_word, test_caption) 
+    uploadToInstagram(test_word, test_caption) 
