@@ -279,30 +279,12 @@ def setPublicAndSave(driver):
         )
         saveButton.click()
         print(f"{Fore.GREEN}✅ Video published")
-        
-    except Exception as e:
-        print(f"{Fore.RED}❌ Publishing error: {e}")
-
-def waitForUploadCompletion(driver):
-    try:
-        print(f"{Fore.CYAN}🔗 Waiting for completion...")
-        
-        shareDialog = WebDriverWait(driver, 30).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, "tp-yt-paper-dialog[aria-labelledby='dialog-title']"))
-        )
-        
-        shareUrlElement = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, "#share-url"))
-        )
-        
-        videoUrl = shareUrlElement.get_attribute("href")
-        print(f"{Fore.GREEN}🎉 Upload successful!")
         return True
         
     except Exception as e:
-        print(f"{Fore.RED}❌ Upload completion error: {e}")
+        print(f"{Fore.RED}❌ Publishing error: {e}")
         return False
-
+    
 def handleFileUpload(driver, videoPath):
     try:
         if os.name == "nt":
@@ -402,9 +384,9 @@ def uploadToYoutube(word, caption):
         clickNextButton(driver)
         
         time.sleep(3)
-        setPublicAndSave(driver)
         
-        uploadSuccess = waitForUploadCompletion(driver)
+        uploadSuccess = setPublicAndSave(driver)
+        time.sleep(10)
         
         print(f"{Fore.MAGENTA}{'='*50}")
         if uploadSuccess:
