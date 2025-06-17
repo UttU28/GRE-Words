@@ -247,17 +247,31 @@ if __name__ == "__main__":
     
     try:
         print(highlight("Starting continuous word processing cycle"))
-        print(info("Pattern: Process word -> 11hr wait -> Process word -> Repeat"))
+        print(info("Pattern: Process word -> Dynamic sleep to complete 12hr cycle -> Process word -> Repeat"))
         
         while True:
             # Process a word
             print(highlight("\n=== Processing word ==="))
+            cycle_start_time = time.time()
             processCompleteWord()
+            cycle_end_time = time.time()
             
-            # Sleep for 11 hours
-            print(info(f"\nSleeping for 11 hours before next word..."))
-            print(info(f"Next word will be processed at: {(datetime.now() + timedelta(hours=11)).strftime('%Y-%m-%d %H:%M:%S')}"))
-            time.sleep(39600)  # 11 hours = 39600 seconds
+            # Calculate processing time and dynamic sleep
+            processing_time = cycle_end_time - cycle_start_time
+            processing_minutes = int(processing_time // 60)
+            processing_seconds = int(processing_time % 60)
+            
+            # 12 hours = 43200 seconds
+            target_cycle_time = 43200
+            sleep_time = max(60, target_cycle_time - processing_time)  # Minimum 1 minute sleep
+            
+            sleep_hours = int(sleep_time // 3600)
+            sleep_minutes = int((sleep_time % 3600) // 60)
+            
+            print(info(f"\nProcessing took: {processing_minutes} minutes {processing_seconds} seconds"))
+            print(info(f"Sleeping for {sleep_hours} hours {sleep_minutes} minutes to complete 12-hour cycle..."))
+            print(info(f"Next word will be processed at: {(datetime.now() + timedelta(seconds=sleep_time)).strftime('%Y-%m-%d %H:%M:%S')}"))
+            time.sleep(sleep_time)
             
     except KeyboardInterrupt:
         print(warning("\nProcess interrupted by user. Exiting..."))
